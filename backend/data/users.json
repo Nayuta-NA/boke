@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "username": "nayuta",
+    "password": "123456",
+    "email": "nayuta@example.com",
+    "name": "Nayuta",
+    "avatar": "/src/IMG/TX/TX.jpg",
+    "userPicture": "/src/IMG/TX/TX.jpg",
+    "userName": "Nayuta",
+    "userRole": "admin",
+    "webLogo": "/src/IMG/TX/TX.jpg",
+    "mainColor": "#1890ff",
+    "interests": ["Web Developer", "旅行爱好者", "Writing enthusiast", "Photography enthusiast"]
+  },
+  {
+    "id": 2,
+    "username": "zhangxiaoming",
+    "password": "1234567",
+    "email": "zhangxm@example.com",
+    "name": "张小明",
+    "avatar": "/src/IMG/TX/xz2.jpg",
+    "userPicture": "/src/IMG/TX/xz2.jpg",
+    "userName": "张小明",
+    "userRole": "user",
+    "webLogo": "/src/IMG/TX/xz2.jpg",
+    "mainColor": "#52c41a",
+    "interests": ["初级前端", "旅行爱好者", "Writing enthusiast", "Photography enthusiast"]
+  },
+  {
+    "id": 3,
+    "username": "lisi",
+    "password": "123456",
+    "email": "lisi@example.com",
+    "name": "李四",
+    "avatar": "/src/IMG/TX/TX.jpg",
+    "userPicture": "/src/IMG/TX/TX.jpg",
+    "userName": "李四",
+    "userRole": "user",
+    "webLogo": "/src/IMG/TX/TX.jpg",
+    "mainColor": "#f5222d",
+    "interests": ["后端开发专家", "技术博主", "开源贡献者", "咖啡爱好者"]
+  },
+  {
+    "id": 4,
+    "password": "aaaaa",
+    "userPicture": "",
+    "userName": "aaaaa",
+    "userRole": "user",
+    "webLogo": "",
+    "mainColor": "#1890ff",
+    "name": "",
+    "email": "",
+    "interests": ["新手学习者", "好奇探索者", "代码爱好者", "技术极客"]
+  }
+]

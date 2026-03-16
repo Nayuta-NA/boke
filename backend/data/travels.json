@@ -1,0 +1,74 @@
+[
+  {
+    "id": "1cbc575a-079c-4a83-9476-5d2356813988",
+    "url": "http://localhost:5000/uploads/81d02097-72a6-476f-bbc1-21b4202ab60b.jpg",
+    "name": "拉萨上空的雪山",
+    "location": "1",
+    "province": "西藏",
+    "year": 2026
+  },
+  {
+    "id": "51360d1c-b4f1-40a8-9301-22b3be4a5736",
+    "url": "http://localhost:5000/uploads/55b254a0-0c56-4d9a-8814-e4eac4d25756.jpg",
+    "name": "珠峰的日照金山",
+    "location": "珠穆朗玛峰",
+    "province": "西藏",
+    "year": 2026
+  },
+  {
+    "id": "1b25fdbe-4a2a-43bd-941e-42ca5b4cfb22",
+    "url": "http://localhost:5000/uploads/5a38db2b-8734-4474-89ff-3d44eb6d3491.jpg",
+    "name": "绝美西湖",
+    "location": "杭州·西湖",
+    "province": "浙江",
+    "year": 2026
+  },
+  {
+    "id": "c8cbbba1-3126-4a97-bf4f-f2ed30db8aab",
+    "url": "http://localhost:5000/uploads/6cb70028-3fe4-43f1-8b39-83ae93c1fa03.jpg",
+    "name": "in77",
+    "location": "In 77",
+    "province": "浙江",
+    "year": 2026
+  },
+  {
+    "id": "d278aced-66d3-420d-9ac0-7dc165645cb6",
+    "url": "http://localhost:5000/uploads/55a2c467-8d7e-4c2b-a8f2-a24eb39fa723.jpg",
+    "name": "工联",
+    "location": "工联",
+    "province": "浙江",
+    "year": 2026
+  },
+  {
+    "id": "307773d1-3aa6-4403-a6cd-888cc185896e",
+    "url": "http://localhost:5000/uploads/3655cb06-3aaf-43ee-9f41-4f912f483ce2.jpg",
+    "name": "1",
+    "location": "1",
+    "province": "云南",
+    "year": 2026
+  },
+  {
+    "id": "bb5321c0-b7d9-4156-8cb7-24dc5ff63df4",
+    "url": "http://localhost:5000/uploads/96a336eb-856f-4c4b-8c09-d514a1f6d742.jpg",
+    "name": "南京的金秋",
+    "location": "南京",
+    "province": "江苏",
+    "year": 2025
+  },
+  {
+    "id": "56d3e6ef-f0e1-49ca-ab29-600aa3afab0a",
+    "url": "http://localhost:5000/uploads/88a01d4f-dc0b-4c4e-98f9-28c9167b251c.jpg",
+    "name": "早晨的餐厅",
+    "location": "成都",
+    "province": "四川",
+    "year": 2026
+  },
+  {
+    "id": "e69ef453-4b82-4c58-8c15-5a1ec183174c",
+    "url": "http://localhost:5000/uploads/a3ca2d32-418a-4435-852f-afc45a7d21d9.jpg",
+    "name": "夜晚小镇",
+    "location": "重庆",
+    "province": "重庆",
+    "year": 2026
+  }
+]
