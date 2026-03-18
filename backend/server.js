@@ -55,7 +55,7 @@ const ARTICLES_FILE = path.join(DATA_DIR, 'articles.json')
 const NOTES_FILE = path.join(DATA_DIR, 'notes.json')
 const TRAVELS_FILE = path.join(DATA_DIR, 'travels.json')
 const USERS_FILE = path.join(DATA_DIR, 'users.json')
-const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json')  // 添加留言数据文件路径
+const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json') // 添加留言数据文件路径
 
 // 读取数据的辅助函数
 const readData = async (filePath) => {
@@ -328,11 +328,11 @@ app.get('/api/users', async (req, res) => {
   try {
     const users = await readData(USERS_FILE)
     // 在返回用户列表时不包含密码字段
-    const usersWithoutPassword = users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
-    res.json(usersWithoutPassword);
+    const usersWithoutPassword = users.map((user) => {
+      const { password, ...userWithoutPassword } = user
+      return userWithoutPassword
+    })
+    res.json(usersWithoutPassword)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -346,8 +346,8 @@ app.get('/api/users/:id', async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
     // 在返回单个用户时不包含密码字段
-    const { password, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
+    const { password, ...userWithoutPassword } = user
+    res.json(userWithoutPassword)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -356,30 +356,30 @@ app.get('/api/users/:id', async (req, res) => {
 // 登录 API 端点
 app.post('/api/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    
+    const { username, password } = req.body
+
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+      return res.status(400).json({ error: 'Username and password are required' })
     }
-    
-    const users = await readData(USERS_FILE);
-    const user = users.find(u => u.username === username);
-    
+
+    const users = await readData(USERS_FILE)
+    const user = users.find((u) => u.username === username)
+
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid credentials' })
     }
-    
+
     // 这里我们使用简单的字符串比较，实际项目中应该使用 bcrypt 进行密码哈希比较
     // 由于我们使用的是预设的bcrypt哈希值 "$2a$10$92IXUNpkjO0rOQ5HiiBJeM3Ir9F1lhnGcOpRa3zTDMJYO7rb6BRFO" 对应明文 "password"
     if (password !== 'password' && user.password !== password) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid credentials' })
     }
-    
+
     // 返回用户信息，但不包含密码
-    const { password: pwd, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
+    const { password: pwd, ...userWithoutPassword } = user
+    res.json(userWithoutPassword)
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
 })
 
@@ -399,7 +399,7 @@ app.post('/api/users', async (req, res) => {
     users.push(newUser)
     await writeData(USERS_FILE, users)
     // 不返回密码字段
-    const { password, ...newUserWithoutPassword } = newUser;
+    const { password, ...newUserWithoutPassword } = newUser
     res.status(201).json(newUserWithoutPassword)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -413,9 +413,9 @@ app.put('/api/users/:id', async (req, res) => {
     if (index === -1) {
       return res.status(404).json({ error: 'User not found' })
     }
-    users[index] = { 
-      ...users[index], 
-      ...req.body 
+    users[index] = {
+      ...users[index],
+      ...req.body,
     }
     await writeData(USERS_FILE, users)
     res.json(users[index])
@@ -446,65 +446,65 @@ app.get('/api/recent-activities', async (req, res) => {
     const [articles, notes, travels] = await Promise.all([
       readData(ARTICLES_FILE),
       readData(NOTES_FILE),
-      readData(TRAVELS_FILE)
-    ]);
+      readData(TRAVELS_FILE),
+    ])
 
     // 合并所有活动并添加类型标识
-    const activities = [];
+    const activities = []
 
     // 处理文章数据
-    articles.forEach(item => {
+    articles.forEach((item) => {
       activities.push({
         id: item.id,
         type: '文章',
         title: item.title || item.name || '无标题',
         desc: item.description || item.content?.substring(0, 100) || '暂无描述',
         date: item.date || item.createdAt || new Date().toISOString(),
-        ...item
-      });
-    });
+        ...item,
+      })
+    })
 
     // 处理笔记数据
-    notes.forEach(item => {
+    notes.forEach((item) => {
       activities.push({
         id: item.id,
         type: '随记',
         title: item.title || item.name || '无标题',
         desc: item.content?.substring(0, 100) || item.description || '暂无描述',
         date: item.date || item.createdAt || new Date().toISOString(),
-        ...item
-      });
-    });
+        ...item,
+      })
+    })
 
     // 处理旅行数据
-    travels.forEach(item => {
+    travels.forEach((item) => {
       activities.push({
         id: item.id,
         type: '旅行',
         title: item.name || '无标题',
         desc: item.location || '暂无描述',
         date: item.date || item.createdAt || new Date().toISOString(),
-        ...item
-      });
-    });
+        ...item,
+      })
+    })
 
     // 按日期降序排列（最新的在前）
-    activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-    res.json(activities);
+    res.json(activities)
   } catch (error) {
-    console.error('获取最新活动失败:', error);
-    res.status(500).json({ error: error.message });
+    console.error('获取最新活动失败:', error)
+    res.status(500).json({ error: error.message })
   }
 })
 
 // Reviews 相关路由
 app.get('/api/reviews', async (req, res) => {
   try {
-    const reviews = await readData(REVIEWS_FILE);
+    const reviews = await readData(REVIEWS_FILE)
     // 按创建时间倒序排列，确保最新的在最前面
-    const sortedReviews = reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    res.json(sortedReviews);
+    const sortedReviews = reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    res.json(sortedReviews)
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -525,37 +525,49 @@ app.get('/api/reviews/:id', async (req, res) => {
 
 // 验证颜色值是否符合规范
 const isValidColor = (color) => {
-  const validColors = ['pink', 'green', 'blue', 'light-blue', 'default'];
-  return validColors.includes(color);
-};
+  const validColors = ['pink', 'green', 'blue', 'light-blue', 'default']
+  return validColors.includes(color)
+}
 
 app.post('/api/reviews', async (req, res) => {
   try {
     // 验证请求体
-    const { name, body, type, color } = req.body;
-    
+    const { name, body, type, color } = req.body
+
     if (!body || body.trim().length === 0) {
-      return res.status(400).json({ error: '留言内容不能为空' });
+      return res.status(400).json({ error: '留言内容不能为空' })
     }
-    
+
     // 验证颜色值是否符合规范
-    let validatedColor = color || 'default';
+    let validatedColor = color || 'default'
     if (!isValidColor(validatedColor)) {
-      validatedColor = 'default'; // 如果颜色无效，使用默认值
+      validatedColor = 'default' // 如果颜色无效，使用默认值
     }
-    
+
     // 验证类型是否符合规范
-    const validTypes = ['留言', '目标', '理想', '过去', '将来', '爱情', '亲情', '友情', '秘密', '信条', '无题'];
-    let validatedType = type || '留言';
+    const validTypes = [
+      '留言',
+      '目标',
+      '理想',
+      '过去',
+      '将来',
+      '爱情',
+      '亲情',
+      '友情',
+      '秘密',
+      '信条',
+      '无题',
+    ]
+    let validatedType = type || '留言'
     if (!validTypes.includes(validatedType)) {
-      validatedType = '留言'; // 如果类型无效，使用默认值
+      validatedType = '留言' // 如果类型无效，使用默认值
     }
-    
-    const reviews = await readData(REVIEWS_FILE);
-    
+
+    const reviews = await readData(REVIEWS_FILE)
+
     // 生成唯一ID
-    const newId = uuidv4();
-    
+    const newId = uuidv4()
+
     const newReview = {
       id: newId,
       name: name || '匿名',
@@ -564,12 +576,12 @@ app.post('/api/reviews', async (req, res) => {
       type: validatedType,
       createdAt: new Date().toISOString(),
     }
-    
-    reviews.push(newReview);
-    await writeData(REVIEWS_FILE, reviews);
+
+    reviews.push(newReview)
+    await writeData(REVIEWS_FILE, reviews)
     res.status(201).json(newReview)
   } catch (error) {
-    console.error('创建留言错误:', error);
+    console.error('创建留言错误:', error)
     res.status(500).json({ error: error.message })
   }
 })
@@ -581,24 +593,36 @@ app.put('/api/reviews/:id', async (req, res) => {
     if (index === -1) {
       return res.status(404).json({ error: 'Review not found' })
     }
-    
+
     // 验证颜色值是否符合规范
     if (req.body.color && !isValidColor(req.body.color)) {
-      return res.status(400).json({ error: '颜色值不符合规范' });
+      return res.status(400).json({ error: '颜色值不符合规范' })
     }
-    
+
     // 验证类型是否符合规范
     if (req.body.type) {
-      const validTypes = ['留言', '目标', '理想', '过去', '将来', '爱情', '亲情', '友情', '秘密', '信条', '无题'];
+      const validTypes = [
+        '留言',
+        '目标',
+        '理想',
+        '过去',
+        '将来',
+        '爱情',
+        '亲情',
+        '友情',
+        '秘密',
+        '信条',
+        '无题',
+      ]
       if (!validTypes.includes(req.body.type)) {
-        return res.status(400).json({ error: '类型不符合规范' });
+        return res.status(400).json({ error: '类型不符合规范' })
       }
     }
-    
-    reviews[index] = { 
-      ...reviews[index], 
+
+    reviews[index] = {
+      ...reviews[index],
       ...req.body,
-      id: reviews[index].id // 确保ID不会被修改
+      id: reviews[index].id, // 确保ID不会被修改
     }
     await writeData(REVIEWS_FILE, reviews)
     res.json(reviews[index])
@@ -622,6 +646,125 @@ app.delete('/api/reviews/:id', async (req, res) => {
   }
 })
 
+// Comments 相关路由（文章评论）
+app.get('/api/comments', async (req, res) => {
+  try {
+    const articles = await readData(ARTICLES_FILE)
+    const { articleId } = req.query
+    
+    if (!articleId) {
+      return res.status(400).json({ error: '缺少文章 ID 参数' })
+    }
+    
+    // 查找对应文章
+    const article = articles.find((a) => a.id == articleId)
+    if (!article) {
+      return res.status(404).json({ error: '文章不存在' })
+    }
+    
+    // 返回文章的评论，如果没有评论则返回空数组
+    const comments = article.comments || []
+    // 按创建时间倒序排列
+    const sortedComments = comments.sort((a, b) => new Date(b.date) - new Date(a.date))
+    res.json(sortedComments)
+  } catch (error) {
+    console.error('获取评论错误:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.post('/api/comments', async (req, res) => {
+  try {
+    const { articleId, author, content } = req.body
+    
+    if (!articleId) {
+      return res.status(400).json({ error: '缺少文章 ID' })
+    }
+    
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: '评论内容不能为空' })
+    }
+    
+    const articles = await readData(ARTICLES_FILE)
+    const articleIndex = articles.findIndex((a) => a.id == articleId)
+    
+    if (articleIndex === -1) {
+      return res.status(404).json({ error: '文章不存在' })
+    }
+    
+    // 生成唯一 ID
+    const newId = uuidv4()
+    
+    const newComment = {
+      id: newId,
+      author: author || '访客',
+      content: content.trim(),
+      date: new Date().toISOString(),
+      likeCount: 0,
+    }
+    
+    // 确保文章有 comments 数组
+    if (!articles[articleIndex].comments) {
+      articles[articleIndex].comments = []
+    }
+    
+    // 添加评论到文章
+    articles[articleIndex].comments.push(newComment)
+    
+    // 更新文章的评论计数
+    articles[articleIndex].commentCount = (articles[articleIndex].commentCount || 0) + 1
+    
+    await writeData(ARTICLES_FILE, articles)
+    
+    console.log('评论已保存:', newComment)
+    res.status(201).json(newComment)
+  } catch (error) {
+    console.error('创建评论错误:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+app.delete('/api/comments/:id', async (req, res) => {
+  try {
+    const { articleId } = req.query
+    const commentId = req.params.id
+    
+    if (!articleId) {
+      return res.status(400).json({ error: '缺少文章 ID' })
+    }
+    
+    const articles = await readData(ARTICLES_FILE)
+    const articleIndex = articles.findIndex((a) => a.id == articleId)
+    
+    if (articleIndex === -1) {
+      return res.status(404).json({ error: '文章不存在' })
+    }
+    
+    const article = articles[articleIndex]
+    const commentIndex = (article.comments || []).findIndex((c) => c.id == commentId)
+    
+    if (commentIndex === -1) {
+      return res.status(404).json({ error: '评论不存在' })
+    }
+    
+    // 删除评论
+    const deletedComment = article.comments.splice(commentIndex, 1)[0]
+    
+    // 更新文章的评论计数
+    if (article.commentCount > 0) {
+      article.commentCount--
+    }
+    
+    await writeData(ARTICLES_FILE, articles)
+    
+    console.log('评论已删除:', deletedComment)
+    res.json(deletedComment)
+  } catch (error) {
+    console.error('删除评论错误:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
@@ -635,3 +778,5 @@ app.listen(PORT, () => {
   console.log(`  Upload: POST /api/upload`)
   console.log(`  Uploads served from: /uploads/*`)
 })
+
+
