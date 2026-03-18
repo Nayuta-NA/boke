@@ -1,7 +1,8 @@
 <template>
   <div
-    class="article flex bg-#ffffff rounded-8px shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+    class="article flex bg-#ffffff rounded-8px shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
     style="height: 180px;"
+    @click="goToDetail(article.id)"
   >
     <!-- 图片区域 -->
     <div 
@@ -42,7 +43,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { defineProps } from 'vue';
+import { useRouter } from 'vue-router';
 
 interface Article {
   id: number;
@@ -59,6 +60,12 @@ interface Article {
 const props = defineProps<{
   article: Article;
 }>();
+
+const router = useRouter()
+
+const goToDetail = (id: number) => {
+  router.push(`/articles/${id}`)
+}
 
 // 处理图片加载失败
 const onImageError = (event: Event) => {

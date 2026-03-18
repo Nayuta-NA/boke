@@ -3,86 +3,60 @@
     <!-- 主要内容区域 -->
     <div class="detail-main" v-if="currentArticle">
       <div class="content-wrapper">
-        <!-- 文章卡片 -->
-        <div class="article-card">
-          <!-- 返回按钮和操作按钮 -->
-          <div class="action-section">
-            <a-button @click="goBack" class="back-button" size="large">
-              <template #icon>
-                <ArrowLeftOutlined />
-              </template>
-              返回文章列表
-            </a-button>
+        <!-- 关闭按钮 - 放在白色区域内右上角 -->
+        <div class="close-button" @click="goBack">
+          <CloseOutlined />
+        </div>
 
-            <!-- 编辑和删除按钮，仅在用户登录时显示 -->
-            <div class="edit-delete-buttons" v-if="authStore.isAuthenticated">
-              <a-button @click="openEditModal" class="edit-button" type="primary" size="large">
-                <template #icon>
-                  <EditOutlined />
-                </template>
-                编辑
-              </a-button>
-              <a-button
-                @click="showDeleteConfirm"
-                class="delete-button"
-                type="default"
-                danger
-                size="large"
-              >
-                <template #icon>
-                  <DeleteOutlined />
-                </template>
-                删除
-              </a-button>
+        <!-- 文章头部 -->
+        <div class="article-header">
+          <h1 class="article-title">
+            {{ currentArticle.title }}
+          </h1>
+          <div class="article-meta">
+            <div class="meta-left">
+              <span class="category-text">{{ currentArticle.category }}</span>
+              <span class="meta-divider">/</span>
+              <span class="author-text">{{ currentArticle.author }}</span>
+              <span class="publish-date">{{ formatDate(currentArticle.date) }}</span>
+            </div>
+            <div class="meta-right">
+              <span class="meta-item">
+                <LikeOutlined /> {{ currentArticle.commentCount || 0 }}
+              </span>
+              <span class="meta-item">
+                <EyeOutlined /> 674
+              </span>
+              <span class="meta-item">
+                <MessageOutlined /> 7
+              </span>
             </div>
           </div>
+        </div>
 
-          <!-- 文章内容 -->
-          <div class="article-content">
-            <div class="content-header">
-              <h1 class="article-title">
-                {{ currentArticle.title }}
-              </h1>
-              <div class="article-meta">
-                <div class="meta-info">
-                  <span class="article-date">
-                    <CalendarOutlined />
-                    {{ formatDate(currentArticle.date) }}
-                  </span>
-                  <span class="article-author">
-                    <UserOutlined />
-                    {{ currentArticle.author }}
-                  </span>
-                  <span class="article-read-time">
-                    <ClockCircleOutlined />
-                    {{ currentArticle.readTime }}
-                  </span>
-                  <a-tag :color="getCategoryColor(currentArticle.category)" class="category-tag">
-                    {{ currentArticle.category }}
-                  </a-tag>
-                </div>
-              </div>
-            </div>
+        <!-- 摘要或题记 -->
+        <div class="article-excerpt-box" v-if="currentArticle.excerpt">
+          {{ currentArticle.excerpt }}
+        </div>
 
-            <!-- 封面图片或默认占位符 -->
-            <div v-if="currentArticle.cover" class="cover-image">
-              <img
-                :src="currentArticle.cover"
-                :alt="currentArticle.title"
-                @error="handleImageError"
-              />
-            </div>
+        <!-- 文章内容 -->
+        <div class="article-content">
+          <div class="content-text" v-html="currentArticle.desc"></div>
 
-            <!-- 默认占位符 -->
+          <!-- 图片展示 -->
+          <div v-if="currentArticle.cover" class="article-image">
+            <img
+              :src="currentArticle.cover"
+              :alt="currentArticle.title"
+              @error="handleImageError"
+            />
+          </div>
 
-            <div class="content-text" v-html="currentArticle.desc"></div>
-
-            <div class="article-tags" v-if="currentArticle.tags && currentArticle.tags.length">
-              <span class="tags-label">标签：</span>
-              <a-tag v-for="tag in currentArticle.tags" :key="tag" class="tag-item">
-                {{ tag }}
-              </a-tag>
-            </div>
+          <!-- 标签区域 -->
+          <div class="article-tags" v-if="currentArticle.tags && currentArticle.tags.length">
+            <a-tag v-for="tag in currentArticle.tags" :key="tag" class="tag-item">
+              {{ tag }}
+            </a-tag>
           </div>
         </div>
       </div>
@@ -94,27 +68,87 @@
       <p>加载中...</p>
     </div>
 
-    <!-- 编辑文章的模态框 -->
-    <a-modal
-      v-model:visible="showEditModal"
+    <!-- 右侧悬浮工具栏 -->
+    <div class="floating-toolbar" v-if="currentArticle">
+      <!-- 点赞按钮 -->
+      <button class="toolbar-btn" @click="handleLike">
+        <LikeOutlined />
+        <span class="btn-text">{{ likeCount }}</span>
+      </button>
+
+      <!-- 评论按钮 -->
+      <button class="toolbar-btn" @click="handleComment">
+        <MessageOutlined />
+        <span class="btn-text">7</span>
+      </button>
+
+      <!-- 分享按钮 -->
+      <button class="toolbar-btn" @click="handleShare">
+        <ShareAltOutlined />
+      </button>
+
+      <!-- 编辑按钮（仅登录用户可见） -->
+      <button 
+        v-if="authStore.isAuthenticated" 
+        class="toolbar-btn edit-btn" 
+        @click="openEditDrawer"
+      >
+        <EditOutlined />
+      </button>
+
+      <!-- 删除按钮（仅登录用户可见） -->
+      <button 
+        v-if="authStore.isAuthenticated" 
+        class="toolbar-btn delete-btn" 
+        @click="showDeleteConfirm"
+      >
+        <DeleteOutlined />
+      </button>
+    </div>
+
+    <!-- 编辑文章的抽屉 -->
+    <a-drawer
+      v-model:visible="showEditDrawer"
       title="编辑文章"
-      :width="800"
+      placement="right"
+      :width="720"
       :destroy-on-close="true"
-      @cancel="handleEditCancel"
     >
       <a-form
         :model="editForm"
-        :label-col="{ span: 4 }"
-        :wrapper-col="{ span: 20 }"
-        autocomplete="off"
         layout="vertical"
+        autocomplete="off"
       >
         <a-form-item label="标题" name="title" :rules="[{ required: true, message: '请输入标题' }]">
-          <a-input v-model:value="editForm.title" placeholder="请输入标题" />
+          <a-input v-model:value="editForm.title" placeholder="请输入标题" size="large" />
         </a-form-item>
 
-        <a-form-item label="封面图片链接" name="cover">
-          <a-input v-model:value="editForm.cover" placeholder="请输入封面图片链接" />
+        <!-- 封面图片上传 -->
+        <a-form-item label="封面图片" name="cover">
+          <div class="upload-container">
+            <a-upload
+              name="file"
+              :multiple="false"
+              :before-upload="beforeUpload"
+              :show-upload-list="false"
+              accept="image/*"
+            >
+              <a-button type="dashed" size="large" block>
+                <UploadOutlined /> 选择图片
+              </a-button>
+            </a-upload>
+            <div class="upload-hint">支持 JPG、PNG 格式，大小不超过 2MB(原图上传)</div>
+            <div v-if="previewUrl" class="image-preview">
+              <img :src="previewUrl" alt="预览" />
+              <a-button type="link" @click="removeImage" size="small" danger>
+                <DeleteOutlined /> 删除
+              </a-button>
+            </div>
+            <div v-else-if="editForm.cover && !previewUrl" class="image-preview">
+              <img :src="editForm.cover" alt="当前封面" />
+              <span class="current-image-label">当前封面</span>
+            </div>
+          </div>
         </a-form-item>
 
         <a-form-item
@@ -122,7 +156,7 @@
           name="category"
           :rules="[{ required: true, message: '请选择分类' }]"
         >
-          <a-select v-model:value="editForm.category" placeholder="请选择分类">
+          <a-select v-model:value="editForm.category" placeholder="请选择分类" size="large">
             <a-select-option value="前端">前端</a-select-option>
             <a-select-option value="旅游">旅游</a-select-option>
             <a-select-option value="生活">生活</a-select-option>
@@ -136,7 +170,7 @@
           name="author"
           :rules="[{ required: true, message: '请输入作者' }]"
         >
-          <a-input v-model:value="editForm.author" placeholder="请输入作者" />
+          <a-input v-model:value="editForm.author" placeholder="请输入作者" size="large" />
         </a-form-item>
 
         <a-form-item label="日期" name="date" :rules="[{ required: true, message: '请选择日期' }]">
@@ -145,6 +179,7 @@
             value-format="YYYY-MM-DD"
             style="width: 100%"
             placeholder="请选择日期"
+            size="large"
           />
         </a-form-item>
 
@@ -153,15 +188,22 @@
           name="readTime"
           :rules="[{ required: true, message: '请输入阅读时间' }]"
         >
-          <a-input v-model:value="editForm.readTime" placeholder="例如：5分钟" />
+          <a-input v-model:value="editForm.readTime" placeholder="例如：5 分钟" size="large" />
+        </a-form-item>
+
+        <a-form-item label="摘要" name="excerpt">
+          <a-textarea
+            v-model:value="editForm.excerpt"
+            placeholder="请输入文章摘要（题记）"
+            :rows="3"
+          />
         </a-form-item>
 
         <a-form-item label="内容" name="desc" :rules="[{ required: true, message: '请输入内容' }]">
           <a-textarea
             v-model:value="editForm.desc"
             placeholder="请输入文章内容"
-            :rows="8"
-            :auto-size="{ minRows: 6, maxRows: 12 }"
+            :rows="12"
           />
         </a-form-item>
 
@@ -177,10 +219,15 @@
       </a-form>
 
       <template #footer>
-        <a-button @click="handleEditCancel">取消</a-button>
+        <a-button @click="handleEditCancel" style="margin-right: 8px;">取消</a-button>
         <a-button @click="handleEditSave" type="primary">保存</a-button>
       </template>
-    </a-modal>
+    </a-drawer>
+
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" @click="scrollToTop">
+      <VerticalAlignTopOutlined />
+    </div>
   </div>
 </template>
 
@@ -189,36 +236,28 @@ import { ref, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import {
-  ArrowLeftOutlined,
-  CalendarOutlined,
-  UserOutlined,
-  ClockCircleOutlined,
+  LikeOutlined,
+  EyeOutlined,
+  MessageOutlined,
+  ShareAltOutlined,
   EditOutlined,
   DeleteOutlined,
+  VerticalAlignTopOutlined,
+  CloseOutlined,
+  UploadOutlined,
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
-import { useArticlesStore, type Article } from '@/stores/articles'
+import { useArticlesStore } from '@/stores/articles'
+import type { Article } from '@/stores/articles'
 import { useAuthStore } from '@/stores/auth'
-
-interface Article {
-  id: number
-  title: string
-  cover: string
-  category: string
-  desc: string
-  excerpt: string
-  author: string
-  date: string
-  readTime: string
-  commentCount: number
-  link: string
-  tags?: string[]
-}
 
 const route = useRoute()
 const router = useRouter()
 const currentArticle = ref<Article | null>(null)
-const showEditModal = ref(false)
+const showEditDrawer = ref(false)
+const likeCount = ref(0)
+const previewUrl = ref('')
+const selectedFile = ref<File | null>(null)
 
 // 获取文章 store 和认证 store
 const articlesStore = useArticlesStore()
@@ -250,41 +289,6 @@ const handleImageError = (event: any) => {
   event.target.style.display = 'none'
 }
 
-// 获取标题的第一个字符（中文或英文首字母）
-const getFirstChar = (title: string) => {
-  if (!title) return 'A'
-  const firstChar = title.trim().charAt(0).toUpperCase()
-  return firstChar.match(/[A-Z0-9]/) ? firstChar : firstChar
-}
-
-// 根据标题生成默认背景颜色
-const getDefaultColor = (title: string) => {
-  if (!title) return '#3b82f6' // 默认蓝色
-
-  // 根据标题第一个字符生成哈希值
-  let hash = 0
-  const str = title.trim().charAt(0).toUpperCase()
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  }
-
-  // 使用哈希值生成颜色
-  const hue = Math.abs(hash) % 360
-  return `hsl(${hue}, 70%, 50%)`
-}
-
-// 获取分类标签颜色
-const getCategoryColor = (category: string) => {
-  const categoryColors: Record<string, string> = {
-    前端: 'blue',
-    旅游: 'green',
-    生活: 'purple',
-    技术: 'orange',
-    设计: 'pink',
-  }
-  return categoryColors[category] || 'default'
-}
-
 // 格式化日期
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
@@ -295,9 +299,116 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// 返回列表页面
-const goBack = () => {
-  router.push('/articles')
+// 上传前验证
+const beforeUpload = (file: File) => {
+  const isImage = file.type.startsWith('image/')
+  if (!isImage) {
+    message.error('只能上传图片文件!')
+    return false
+  }
+  
+  // 限制为 2MB，避免后端 413 错误
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    message.error('图片大小不能超过 2MB，请使用压缩工具处理后再上传!')
+    return false
+  }
+
+  selectedFile.value = file
+  
+  // 创建预览 URL 并直接更新表单
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const base64Data = e.target?.result as string
+    previewUrl.value = base64Data
+    editForm.cover = base64Data
+    console.log('图片已选择，Base64 长度:', base64Data.length, '文件大小:', Math.round(file.size / 1024), 'KB')
+  }
+  reader.onerror = () => {
+    message.error('图片读取失败')
+  }
+  reader.readAsDataURL(file)
+  
+  return false // 阻止自动上传
+}
+
+// 删除图片
+const removeImage = () => {
+  previewUrl.value = ''
+  selectedFile.value = null
+  editForm.cover = ''
+}
+
+// 点赞处理
+const handleLike = () => {
+  likeCount.value++
+  message.success('点赞成功')
+}
+
+// 评论处理
+const handleComment = () => {
+  message.info('评论功能开发中')
+}
+
+// 分享处理
+const handleShare = () => {
+  message.success('分享链接已复制')
+}
+
+// 保存编辑
+const handleEditSave = async () => {
+  if (!currentArticle.value) return
+
+  try {
+    // 准备更新的数据
+    const articleData = {
+      ...editForm,
+      date:
+        typeof editForm.date === 'string'
+          ? editForm.date
+          : (editForm.date as dayjs.Dayjs).format('YYYY-MM-DD'),
+    }
+
+    console.log('=== 开始更新文章 ===')
+    console.log('文章 ID:', currentArticle.value.id)
+    console.log('更新数据:', JSON.stringify(articleData, null, 2))
+    console.log('封面图片数据:', articleData.cover ? `有图片 (${articleData.cover.length} 字符)` : '无图片')
+
+    const updatedArticle = await articlesStore.updateArticle(currentArticle.value.id, articleData)
+
+    console.log('更新成功:', updatedArticle)
+    
+    currentArticle.value = { ...updatedArticle }
+    message.success('文章更新成功')
+    showEditDrawer.value = false
+    previewUrl.value = ''
+    selectedFile.value = null
+  } catch (error) {
+    console.error('更新文章失败:', error)
+    message.error('更新失败，请重试')
+  }
+}
+
+// 取消编辑
+const handleEditCancel = () => {
+  showEditDrawer.value = false
+  previewUrl.value = ''
+  selectedFile.value = null
+}
+
+// 打开编辑抽屉
+const openEditDrawer = () => {
+  if (currentArticle.value) {
+    Object.assign(editForm, {
+      ...currentArticle.value,
+      date: dayjs(currentArticle.value.date),
+    })
+    if (currentArticle.value.cover) {
+      previewUrl.value = currentArticle.value.cover
+    }
+    showEditDrawer.value = true
+    console.log('打开编辑抽屉，当前封面:', editForm.cover ? '有' : '无')
+  }
 }
 
 // 显示删除确认对话框
@@ -313,7 +424,7 @@ const showDeleteConfirm = () => {
         try {
           await articlesStore.deleteArticle(currentArticle.value.id)
           message.success('删除成功')
-          router.push('/articles') // 删除后返回文章列表
+          router.push('/articles')
         } catch (error) {
           console.error('删除文章失败:', error)
           message.error('删除失败，请重试')
@@ -323,59 +434,28 @@ const showDeleteConfirm = () => {
   })
 }
 
-// 打开编辑模态框
-const openEditModal = () => {
-  if (currentArticle.value) {
-    // 复制当前文章数据到编辑表单，处理日期格式
-    Object.assign(editForm, {
-      ...currentArticle.value,
-      date: dayjs(currentArticle.value.date), // 转换为 dayjs 对象
-    })
-    showEditModal.value = true
-  }
+// 返回顶部
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
 }
 
-// 保存编辑
-const handleEditSave = async () => {
-  if (!currentArticle.value) return
-
-  try {
-    // 更新文章，确保日期为字符串格式
-    const updatedArticle = await articlesStore.updateArticle(currentArticle.value.id, {
-      ...editForm,
-      date:
-        typeof editForm.date === 'string'
-          ? editForm.date
-          : (editForm.date as dayjs.Dayjs).format('YYYY-MM-DD'),
-    })
-
-    // 更新当前显示的文章
-    currentArticle.value = { ...updatedArticle }
-
-    message.success('文章更新成功')
-    showEditModal.value = false
-  } catch (error) {
-    console.error('更新文章失败:', error)
-    message.error('更新失败，请重试')
-  }
-}
-
-// 取消编辑
-const handleEditCancel = () => {
-  showEditModal.value = false
+// 返回列表页
+const goBack = () => {
+  router.push('/articles')
 }
 
 onMounted(async () => {
-  // 从路由参数中获取文章ID
   const articleId = parseInt(route.params.id as string)
 
   try {
-    // 从 store 获取文章
     const article = await articlesStore.fetchArticleById(articleId)
     if (article) {
-      currentArticle.value = { ...article } // 创建副本避免直接修改原始数据
+      currentArticle.value = { ...article }
+      likeCount.value = article.commentCount || 0
 
-      // 触发loaded事件
       const event = new Event('loaded')
       window.dispatchEvent(event)
     } else {
@@ -393,200 +473,289 @@ onMounted(async () => {
 <style scoped>
 .article-detail-container {
   min-height: 100vh;
-  background: #f8f9fa;
-  padding: 40px 20px;
+  background: #ffffff;
+  padding: 0;
+  position: relative;
 }
 
 .detail-main {
   display: flex;
   justify-content: center;
+  padding-top: 60px;
 }
 
 .content-wrapper {
   width: 100%;
-  max-width: 1200px;
+  max-width: 800px;
+  padding: 0 24px;
+  position: relative;
 }
 
-.article-card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.article-card:hover {
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
-  transform: translateY(-5px);
-}
-
-.back-section {
-  padding: 24px 40px 0;
-}
-
-.back-button {
-  background: #f0f2f5;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.back-button:hover {
-  background: #e1e5e9 !important;
-  border: none;
-}
-
-.article-content {
-  padding: 20px 40px 40px;
-}
-
-.action-section {
+/* 关闭按钮样式 - 位于白色内容区域内 */
+.close-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 24px 40px 0;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.edit-delete-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-.edit-button {
-  background: #1890ff;
-  border-color: #1890ff;
-  color: #fff;
+  justify-content: center;
+  font-size: 20px;
+  color: #666;
   transition: all 0.3s ease;
+  z-index: 10;
 }
 
-.edit-button:hover,
-.edit-button:focus {
-  background: #40a9ff;
-  border-color: #40a9ff;
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+  transform: rotate(90deg);
 }
 
-.delete-button {
-  background: #ff4d4f;
-  border-color: #ff4d4f;
-  color: #fff;
-  transition: all 0.3s ease;
-}
+/* 移除对header的样式影响，避免与顶部导航栏冲突 */
 
-.delete-button:hover,
-.delete-button:focus {
-  background: #ff7875;
-  border-color: #ff7875;
-  color: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
-}
-
-.content-header {
-  margin-bottom: 30px;
+/* 文章头部样式 */
+.article-header {
+  margin-bottom: 40px;
+  padding-top: 20px;
 }
 
 .article-title {
   font-size: 32px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
   line-height: 1.4;
+  margin-bottom: 16px;
 }
 
 .article-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
+  font-size: 14px;
+  color: #666;
 }
 
-.meta-info {
+.meta-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-text {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.meta-divider {
+  color: #d9d9d9;
+}
+
+.author-text {
+  color: #666;
+}
+
+.publish-date {
+  color: #999;
+}
+
+.meta-right {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
-.article-date,
-.article-author,
-.article-read-time {
+.meta-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #666;
-  font-size: 14px;
+  gap: 4px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s;
 }
 
-.category-tag {
-  font-size: 12px;
-  padding: 2px 8px;
+.meta-item:hover {
+  color: #1890ff;
 }
 
-.cover-image,
-.cover-placeholder {
-  width: 100%;
-  max-height: 500px;
-  margin: 20px 0 30px;
+/* 摘要框样式 */
+.article-excerpt-box {
+  background: #f5f7fa;
+  padding: 24px 32px;
+  border-radius: 8px;
+  margin-bottom: 40px;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.8;
+  font-style: italic;
+}
+
+/* 文章内容样式 */
+.article-content {
+  margin-bottom: 60px;
+}
+
+.content-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 32px;
+}
+
+.content-text p {
+  margin-bottom: 24px;
+  text-align: justify;
+}
+
+.article-image {
+  margin: 32px 0;
   border-radius: 12px;
   overflow: hidden;
 }
 
-.cover-image img {
+.article-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
-}
-
-.cover-placeholder {
-  height: 500px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.placeholder-text {
-  font-size: 120px;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.content-text {
-  font-size: 18px;
-  line-height: 1.8;
-  color: #333;
-  margin-bottom: 30px;
-}
-
-.content-text p {
-  margin-bottom: 20px;
-  text-align: justify;
 }
 
 .article-tags {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
-}
-
-.tags-label {
-  font-size: 14px;
-  color: #666;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .tag-item {
-  font-size: 12px;
-  margin: 0;
+  font-size: 13px;
+  padding: 4px 12px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 16px;
 }
 
+/* 右侧悬浮工具栏 */
+.floating-toolbar {
+  position: fixed;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+}
+
+.toolbar-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  color: #666;
+}
+
+.toolbar-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.toolbar-btn.edit-btn:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.toolbar-btn.delete-btn:hover {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.btn-text {
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+/* 返回顶部按钮 */
+.back-to-top {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.back-to-top:hover {
+  background: #333333;
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 图片上传预览样式 */
+.upload-container {
+  width: 100%;
+}
+
+.image-preview {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f5f7fa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.image-preview img {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #e8e8e8;
+}
+
+.image-preview button {
+  flex-shrink: 0;
+}
+
+.image-preview .current-image-label {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 如果没有图片，显示提示 */
+.upload-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #999;
+}
+
+/* 加载状态 */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -614,51 +783,65 @@ onMounted(async () => {
   }
 }
 
+/* 响应式设计 */
 @media (max-width: 768px) {
-  .article-detail-container {
-    padding: 20px 10px;
+  .detail-main {
+    padding-top: 20px;
   }
 
-  .action-section {
-    padding-left: 20px;
-    padding-right: 20px;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .edit-delete-buttons {
-    justify-content: center;
-  }
-
-  .article-content {
-    padding-left: 20px;
-    padding-right: 20px;
+  .content-wrapper {
+    padding: 0 16px;
   }
 
   .article-title {
     font-size: 24px;
   }
 
-  .content-text {
-    font-size: 16px;
-  }
-
   .article-meta {
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
 
-  .cover-image,
-  .cover-placeholder {
-    margin: 15px 0 20px;
+  .meta-right {
+    gap: 12px;
   }
 
-  .cover-placeholder {
-    height: 300px;
+  .article-excerpt-box {
+    padding: 16px 20px;
   }
 
-  .placeholder-text {
-    font-size: 80px;
+  .content-text {
+    font-size: 15px;
+  }
+
+  .floating-toolbar {
+    right: 16px;
+    top: auto;
+    bottom: 100px;
+    transform: none;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .toolbar-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .back-to-top {
+    right: 16px;
+    bottom: 20px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .close-button {
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
   }
 }
 </style>

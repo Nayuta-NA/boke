@@ -77,6 +77,79 @@
         </div>
       </div>
     </template>
+
+    <!-- 创建文章模态框 -->
+    <div v-if="createModalVisible" class="modal-overlay" @click="handleCancelCreate">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>新建文章</h3>
+          <button class="close-btn" @click="handleCancelCreate">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-item">
+            <label>文章标题 <span class="required">*</span></label>
+            <input
+              v-model="newArticleForm.title"
+              type="text"
+              placeholder="请输入文章标题"
+              class="form-input"
+            />
+          </div>
+          <div class="form-item">
+            <label>文章分类 <span class="required">*</span></label>
+            <select v-model="newArticleForm.category" class="form-select">
+              <option value="" disabled>请选择分类</option>
+              <option value="旅游">旅游</option>
+              <option value="前端">前端</option>
+              <option value="技术">技术</option>
+              <option value="生活">生活</option>
+            </select>
+          </div>
+          <div class="form-item">
+            <label>封面图片 URL</label>
+            <input
+              v-model="newArticleForm.cover"
+              type="text"
+              placeholder="请输入封面图片链接（可选）"
+              class="form-input"
+            />
+          </div>
+          <div class="form-item">
+            <label>文章摘要 <span class="required">*</span></label>
+            <textarea
+              v-model="newArticleForm.excerpt"
+              placeholder="请输入文章摘要（100 字以内）"
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-item">
+            <label>文章内容 <span class="required">*</span></label>
+            <textarea
+              v-model="newArticleForm.desc"
+              placeholder="请输入文章内容"
+              class="form-textarea"
+              rows="6"
+            ></textarea>
+          </div>
+          <div class="form-item">
+            <label>标签（用逗号分隔）</label>
+            <input
+              v-model="newArticleForm.tags"
+              type="text"
+              placeholder="例如：Vue, JavaScript, 前端"
+              class="form-input"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="handleCancelCreate">取消</button>
+          <button class="btn-confirm" @click="handleCreateArticle" :disabled="confirmLoading">
+            {{ confirmLoading ? '创建中...' : '创建' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -180,9 +253,11 @@ const handleCreateArticle = async () => {
         'https://design.gemcoder.com/staticResource/echoAiSystemImages/default-article-cover.jpg',
       author: '张小明',
       date: new Date().toISOString().split('T')[0],
-      readTime: '5分钟阅读',
+      readTime: '5 分钟阅读',
       commentCount: 0,
       tags: newArticleForm.tags || [],
+      link: '', // 添加必需的 link 字段
+      category: newArticleForm.category!, // 使用非空断言，因为前面已经验证过
     }
     // 调用 store 的创建方法
     await articlesStore.createArticle(articleData)
@@ -434,6 +509,191 @@ onMounted(async () => {
   .articles-container {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
+  }
+}
+
+/* 模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.form-item {
+  margin-bottom: 20px;
+}
+
+.form-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #40e0d0;
+  box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-cancel,
+.btn-confirm {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-cancel {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.btn-cancel:hover {
+  background-color: #e5e7eb;
+}
+
+.btn-confirm {
+  background-color: #40e0d0;
+  color: white;
+}
+
+.btn-confirm:hover {
+  background-color: #34c7ba;
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+}
+
+.btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 响应式模态框 */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 16px;
   }
 }
 </style>
