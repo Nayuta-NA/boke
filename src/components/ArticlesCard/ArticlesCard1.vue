@@ -1,109 +1,224 @@
 <template>
-  <div
-    class="article-card relative flex items-start bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-    style="height: auto; min-height: 180px"
-  >
-    <!-- 文章背景图或默认占位符 -->
-    <div
-      v-if="article.cover"
-      class="article-bg absolute inset-0 z-0"
-      :style="{
-        backgroundImage: `url('${article.cover}')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        filter: 'brightness(0.7)',
-      }"
-    ></div>
+  <div class="article-card-wrapper" @click="goToDetail(article.id)">
+    <div class="modern-card">
+      <!-- 图片区域 - 占据主要视觉 -->
+      <div class="card-image">
+        <img
+          :src="
+            article.cover ||
+            'https://design.gemcoder.com/staticResource/echoAiSystemImages/default-article-cover.jpg'
+          "
+          :alt="article.title"
+          @error="onImageError"
+        />
+        <!-- 分类标签 - 浮动在图片上 -->
+        <div class="category-tag">
+          {{ article.category }}
+        </div>
+      </div>
 
-    <!-- 默认占位符 -->
-    <div
-      v-else
-      class="absolute inset-0 z-0 flex items-center justify-center"
-      :style="{
-        backgroundColor: getDefaultColor(article.title),
-      }"
-    >
-      <span class="text-6xl font-bold text-white opacity-80">
-        {{ getFirstChar(article.title) }}
-      </span>
-    </div>
+      <!-- 内容区域 -->
+      <div class="card-content">
+        <!-- 标题 -->
+        <h3 class="article-title">{{ article.title }}</h3>
 
-    <!-- 文章内容，置于背景图上方 -->
-    <div class="article-content relative z-10 p-6 md:p-8 w-full">
-      <!-- 分类标识（若需要可添加） -->
-      <!-- <div class="category-badge absolute top-4 left-4 z-20 px-2.5 py-1 text-xs font-medium rounded-full bg-orange-500 text-white">
-        {{ article.category }}
-      </div> -->
+        <!-- 摘要 -->
+        <p class="article-excerpt">{{ article.excerpt }}</p>
 
-      <h3
-        class="article-title text-2xl md:text-2xl font-bold mb-3 text-white transition-colors duration-300 group-hover:text-orange-300"
-        style="line-height: 1.3"
-      >
-        {{ article.title }}
-      </h3>
-      <p
-        class="article-excerpt text-white/80 text-sm md:text-base line-clamp-2 mb-4"
-        style="line-height: 1.5"
-      >
-        {{ article.excerpt }}
-      </p>
-      <div class="article-meta flex items-center justify-between text-white/70 text-sm mt-2">
-        <span class="publish-date flex items-center">
-          <i class="fa fa-calendar-o mr-1.5"></i>
-          {{ article.date }}
-        </span>
-        <span class="read-time flex items-center">
-          <i class="fa fa-clock-o mr-1.5"></i>
-          {{ article.readTime }}
-        </span>
+        <!-- 底部信息 -->
+        <div class="card-footer">
+          <div class="meta-left">
+            <span class="date-icon">📅</span>
+            <span class="publish-date">{{ article.date }}</span>
+          </div>
+          <div class="meta-right">
+            <span class="read-time">⏱ {{ article.readTime }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
-
-interface Article {
-  id: number
-  title: string
-  excerpt: string
-  cover?: string
-  category: string
-  date: string
-  readTime: string
-  author: string
-  commentCount: number
-}
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{
-  article: Article
+  article: any
 }>()
 
-// 获取文章标题的第一个字符
-const getFirstChar = (title: string) => {
-  if (!title) return 'A'
-  return title.trim().charAt(0).toUpperCase()
+const router = useRouter()
+
+const goToDetail = (id: number) => {
+  router.push(`/articles/${id}`)
 }
 
-// 获取要显示的文本（限制为10个字符）
-const getDisplayText = (title: string) => {
-  if (!title) return 'A'
-  // 限制标题长度为10个字符
-  return title.trim().substring(0, 10)
-}
-
-// 使用统一的深灰色背景
-const getDefaultColor = (title: string) => {
-  return '#4b5563' // 深灰色
+const onImageError = (event: Event) => {
+  const target = event.target as HTMLImageElement
+  target.style.display = 'none'
 }
 </script>
 
 <style scoped>
-.line-clamp-2 {
+.article-card-wrapper {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.article-card-wrapper:hover {
+  transform: translateY(-8px);
+}
+
+.modern-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.article-card-wrapper:hover .modern-card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #40e0d0;
+}
+
+/* 图片区域 */
+.card-image {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.article-card-wrapper:hover .card-image img {
+  transform: scale(1.08);
+}
+
+/* 分类标签 */
+.category-tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #40e0d0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 内容区域 */
+.card-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 标题 */
+.article-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.5;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  transition: color 0.3s;
+}
+
+.article-card-wrapper:hover .article-title {
+  color: #40e0d0;
+}
+
+/* 摘要 */
+.article-excerpt {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  flex: 1;
+}
+
+/* 底部信息 */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.meta-left,
+.meta-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.date-icon {
+  font-size: 14px;
+}
+
+.publish-date {
+  font-size: 13px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.read-time {
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 4px 10px;
+  background: #f9fafb;
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.article-card-wrapper:hover .read-time {
+  background: #40e0d0;
+  color: white;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .card-image {
+    height: 180px;
+  }
+
+  .card-content {
+    padding: 16px;
+  }
+
+  .article-title {
+    font-size: 16px;
+  }
+
+  .article-excerpt {
+    font-size: 13px;
+  }
 }
 </style>

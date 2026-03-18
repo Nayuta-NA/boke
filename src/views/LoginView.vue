@@ -77,7 +77,7 @@
 
         <!-- 互动提示 -->
         <div class="interaction-hint">
-          <p class="text-sm">
+          <p class="text-sm align-center">
             <span v-if="focusedField === 'username'">它们在好奇地看着你输入什么呢~</span>
             <span v-else-if="focusedField === 'password'">它们很礼貌地移开了视线</span>
             <span v-else>输入账号和密码继续</span>

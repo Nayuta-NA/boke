@@ -1,5 +1,6 @@
 <template>
   <div class="articles-view">
+    <!-- 头部区域 -->
     <div class="header-section">
       <div class="tabs-nav">
         <button
@@ -26,168 +27,56 @@
       <p>加载中...</p>
     </div>
 
-    <!-- 内容区域 -->
-    <div v-else class="tabs-content">
-      <div v-if="activeTab === 0" class="tab-pane">
+    <!-- 文章列表 - 使用新的卡片布局 -->
+    <template v-else>
+      <!-- TravelBlog -->
+      <div v-if="activeTab === 0" class="category-section">
         <div class="articles-container">
-          <div
+          <ArticlesCard1
             v-for="article in displayedTravelArticles"
             :key="article.id"
-            class="article-card-wrapper"
-            @click="goToDetail(article.id)"
-          >
-            <!-- 使用修改后的ArticlesCard2组件，突出图片展示 -->
-            <div class="enhanced-article-card">
-              <!-- 图片区域 -->
-              <div
-                v-if="article.cover"
-                class="image-section rounded-8px overflow-hidden m-10px flex items-center justify-center group"
-                :style="{
-                  backgroundColor: '#4b5563',
-                }"
-              >
-                <img
-                  :src="article.cover"
-                  :alt="article.title"
-                  class="w-full h-full object-cover"
-                  @error="onImageError"
-                />
-              </div>
-
-              <!-- 无图片时的默认占位符 -->
-              <div
-                v-else
-                class="image-section rounded-8px overflow-hidden m-10px flex items-center justify-center group"
-                :style="{
-                  backgroundColor: '#4b5563',
-                }"
-              >
-                <span class="text-4xl font-bold text-white text-center px-2">
-                  {{ getDisplayText(article.title) }}
-                </span>
-              </div>
-
-              <div class="text-box flex flex-col w-60% ml-10px">
-                <div
-                  class="title text-20px font-bold mb-8px mt-10px transition-all duration-300 hover:text-teal-500"
-                >
-                  {{ article.title }}
-                </div>
-                <div class="excerpt text-16px text-gray-500 line-clamp-2">
-                  {{ article.excerpt }}
-                </div>
-                <div class="data-time text-14px text-gray-400 mt-8px">
-                  发布时间：{{ article.date }}
-                </div>
-
-                <div class="article-meta mt-8px flex gap-2">
-                  <span class="read-time text-14px text-gray-500">{{ article.readTime }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+            :article="article"
+          />
         </div>
-
-        <!-- 展示更多按钮 -->
-        <div class="load-more-container" v-if="travelArticlesRef.length > 9">
-          <button class="load-more-btn" @click="showAllTravel = !showAllTravel">
+        <div v-if="travelArticlesRef.length > 9" class="load-more-container">
+          <button class="load-more-btn" @click="showAllTravelArticles">
             {{ showAllTravel ? '收起' : '加载更多' }}
           </button>
         </div>
       </div>
 
-      <div v-if="activeTab === 1" class="tab-pane">
+      <!-- WebBlog -->
+      <div v-if="activeTab === 1" class="category-section">
         <div class="articles-container">
-          <div
+          <ArticlesCard2
             v-for="article in displayedTechArticles"
             :key="article.id"
-            class="article-card-wrapper"
-            @click="goToDetail(article.id)"
-          >
-            <ArticlesCard2 :article="article" />
-          </div>
+            :article="article"
+          />
         </div>
-
-        <!-- 展示更多按钮 -->
-        <div class="load-more-container" v-if="techArticlesRef.length > 9">
-          <button class="load-more-btn" @click="showAllTech = !showAllTech">
+        <div v-if="techArticlesRef.length > 9" class="load-more-container">
+          <button class="load-more-btn" @click="showAllTechArticles">
             {{ showAllTech ? '收起' : '查看更多' }}
           </button>
         </div>
       </div>
 
-      <div v-if="activeTab === 2" class="tab-pane">
+      <!-- otherBlog -->
+      <div v-if="activeTab === 2" class="category-section">
         <div class="articles-container">
-          <div
+          <ArticlesCard2
             v-for="article in displayedOtherArticles"
             :key="article.id"
-            class="article-card-wrapper"
-            @click="goToDetail(article.id)"
-          >
-            <ArticlesCard2 :article="article" />
-          </div>
+            :article="article"
+          />
         </div>
-
-        <!-- 展示更多按钮 -->
-        <div class="load-more-container" v-if="otherArticlesRef.length > 9">
-          <button class="load-more-btn" @click="showAllOther = !showAllOther">
+        <div v-if="otherArticlesRef.length > 9" class="load-more-container">
+          <button class="load-more-btn" @click="showAllOtherArticles">
             {{ showAllOther ? '收起' : '查看更多' }}
           </button>
         </div>
       </div>
-    </div>
-
-    <!-- 新建文章模态框 -->
-    <a-modal
-      v-model:open="createModalVisible"
-      title="新建文章"
-      @ok="handleCreateArticle"
-      @cancel="handleCancelCreate"
-      :confirm-loading="confirmLoading"
-    >
-      <a-form :model="newArticleForm" layout="vertical">
-        <a-form-item label="文章标题" required>
-          <a-input v-model:value="newArticleForm.title" placeholder="请输入文章标题" />
-        </a-form-item>
-
-        <a-form-item label="文章分类" required>
-          <a-select v-model:value="newArticleForm.category" placeholder="请选择文章分类">
-            <a-select-option value="旅游">旅游</a-select-option>
-            <a-select-option value="前端">前端</a-select-option>
-            <a-select-option value="生活">生活</a-select-option>
-            <a-select-option value="技术">技术</a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item label="封面图片URL">
-          <a-input v-model:value="newArticleForm.cover" placeholder="请输入封面图片URL" />
-        </a-form-item>
-
-        <a-form-item label="文章摘要" required>
-          <a-textarea
-            v-model:value="newArticleForm.excerpt"
-            placeholder="请输入文章摘要"
-            :rows="3"
-          />
-        </a-form-item>
-
-        <a-form-item label="文章内容" required>
-          <a-textarea v-model:value="newArticleForm.desc" placeholder="请输入文章内容" :rows="5" />
-        </a-form-item>
-
-        <a-form-item label="标签">
-          <a-select
-            v-model:value="newArticleForm.tags"
-            mode="tags"
-            placeholder="请输入标签（回车确认）"
-            style="width: 100%"
-          />
-        </a-form-item>
-      </a-form>
-    </a-modal>
-
-    <Marquee style="margin-top: 20px"></Marquee>
-    <!-- <Recommend /> -->
+    </template>
   </div>
 </template>
 
@@ -197,15 +86,16 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
 import ArticlesCard2 from '@/components/ArticlesCard/ArticlesCard2.vue'
+import ArticlesCard1 from '@/components/ArticlesCard/ArticlesCard1.vue'
 import { useArticlesStore } from '@/stores/articles'
-import Marquee from '@/components/pl/Marquee.vue'
-import Recommend from '@/components/Recommend/index.vue'
+// import Marquee from '@/components/pl/Marquee.vue'
+// import Recommend from '@/components/Recommend/index.vue'
 
 // 标签数据
-const tabs = [{ title: 'TravelBlog' }, { title: 'WebBlog' }, { title: 'otherBlog' }]
+const tabs = [{ title: '旅游' }, { title: '前端' }, { title: '生活' }]
 
 const activeTab = ref(0)
-const isLoading = ref(true) // 添加加载状态
+const isLoading = ref(true)
 
 // 控制显示全部文章的变量
 const showAllTravel = ref(false)
@@ -280,9 +170,7 @@ const handleCreateArticle = async () => {
     message.warning('请填写必填项')
     return
   }
-
   confirmLoading.value = true
-
   try {
     // 准备文章数据
     const articleData = {
@@ -296,13 +184,10 @@ const handleCreateArticle = async () => {
       commentCount: 0,
       tags: newArticleForm.tags || [],
     }
-
     // 调用 store 的创建方法
     await articlesStore.createArticle(articleData)
-
     // 重新加载分类数据
     await loadArticles()
-
     // 重置表单
     Object.assign(newArticleForm, {
       title: '',
@@ -312,7 +197,6 @@ const handleCreateArticle = async () => {
       desc: '',
       tags: [],
     })
-
     // 关闭模态框
     createModalVisible.value = false
     message.success('文章创建成功')
@@ -327,7 +211,6 @@ const handleCreateArticle = async () => {
 // 取消创建文章
 const handleCancelCreate = () => {
   createModalVisible.value = false
-
   // 重置表单
   Object.assign(newArticleForm, {
     title: '',
@@ -344,12 +227,11 @@ const loadArticles = async () => {
   try {
     // 从 store 获取文章数据
     await articlesStore.fetchArticles()
-
     // 按分类过滤文章
     const allArticles = articlesStore.articles
     travelArticlesRef.value = allArticles.filter((article: any) => article.category === '旅游')
     techArticlesRef.value = allArticles.filter(
-      (article: any) => article.category === '技术' || article.category === '前端'
+      (article: any) => article.category === '技术' || article.category === '前端',
     )
     otherArticlesRef.value = allArticles.filter((article: any) => article.category === '生活')
   } catch (error) {
@@ -363,17 +245,14 @@ const showAllTravelArticles = () => {
   showAllTravel.value = !showAllTravel.value
 }
 
-// 图片加载错误处理
-const onImageError = (event: Event) => {
-  const target = event.target as HTMLImageElement
-  target.style.display = 'none'
+// 展示所有技术文章
+const showAllTechArticles = () => {
+  showAllTech.value = !showAllTech.value
 }
 
-// 获取要显示的文本（限制为10个字符）
-const getDisplayText = (title: string) => {
-  if (!title) return 'A'
-  // 限制标题长度为10个字符
-  return title.trim().substring(0, 10)
+// 展示所有其他文章
+const showAllOtherArticles = () => {
+  showAllOther.value = !showAllOther.value
 }
 
 // 页面加载完成后触发事件
@@ -381,7 +260,6 @@ onMounted(async () => {
   // 尽快触发loaded事件，减少等待时间
   const event = new Event('loaded')
   window.dispatchEvent(event)
-
   // 从后端加载文章数据
   await loadArticles()
   isLoading.value = false
@@ -396,13 +274,70 @@ onMounted(async () => {
   margin-top: -2%;
 }
 
+/* 头部区域 */
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 1.5rem;
+}
+
+/* 标签导航样式 */
+.tabs-nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tab-button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 25px;
+  background-color: #f5f5f5;
+  color: #666;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  background-color: #e8e8e8;
+  color: #333;
+}
+
+.tab-button.active {
+  background-color: #40e0d0;
+  color: white;
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+}
+
+.actions-section {
+  display: flex;
+  align-items: center;
+}
+
+.create-article-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #40e0d0;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.create-article-btn:hover {
+  background-color: #34c7ba;
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.4);
+  transform: translateY(-2px);
 }
 
 /* 加载状态样式 */
@@ -411,17 +346,17 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  min-height: 300px;
   color: #666;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #40e0d0;
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #40e0d0;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
   margin-bottom: 1rem;
 }
 
@@ -434,168 +369,44 @@ onMounted(async () => {
   }
 }
 
-/* 标签导航样式 */
-.tabs-nav {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
+/* 分类区域 */
+.category-section {
+  margin-bottom: 2rem;
 }
 
-.tab-button {
-  padding: 8px 20px;
-  border: 1px solid #40e0d0;
-  border-radius: 30px;
-  background-color: transparent;
-  color: #333;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tab-button:hover {
-  background-color: #40e0d0;
-  color: white;
-}
-
-.tab-button.active {
-  background-color: #40e0d0;
-  color: white;
-  border-color: #40e0d0;
-}
-
-.actions-section {
-  display: flex;
-  align-items: center;
-}
-
-.create-article-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: #40e0d0;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.create-article-btn:hover {
-  background-color: #34c7ba;
-}
-
-/* 文章容器样式 - 修改为一行三列 */
+/* 文章容器样式 - 优化后的网格布局 */
 .articles-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  padding: 1rem 0;
-}
-
-.article-card-wrapper {
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-
-.article-card-wrapper:hover {
-  transform: translateY(-5px);
-}
-
-/* 为TravelBlog增强的文章卡片 */
-.enhanced-article-card {
-  display: flex;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  height: 180px;
-  overflow: hidden;
-}
-
-.enhanced-article-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  transform: translateY(-3px);
-}
-
-.image-section {
-  width: 160px;
-  height: 160px;
-  flex-shrink: 0;
-}
-
-.text-box {
-  flex: 1;
-  padding: 10px;
-  overflow: hidden;
-}
-
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  margin-top: 10px;
-  transition: all 0.3s;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.title:hover {
-  color: #40e0d0;
-}
-
-.excerpt {
-  font-size: 16px;
-  color: #6b7280;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.data-time {
-  font-size: 14px;
-  color: #9ca3af;
-  margin-bottom: 8px;
-}
-
-.article-meta {
-  display: flex;
-  gap: 8px;
-}
-
-.read-time {
-  font-size: 14px;
-  color: #9ca3af;
+  gap: 2rem;
+  min-height: 400px;
 }
 
 /* 加载更多按钮样式 */
 .load-more-container {
   display: flex;
-  justify-content: center; /* 水平居中 */
-  margin-top: 20px; /* 可选：增加顶部间距 */
+  justify-content: center;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 .load-more-btn {
-  padding: 10px 24px;
-  background-color: #f0f0f0; /* 浅灰色背景 */
-  border: 1px solid #d9d9d9; /* 细边框 */
-  border-radius: 25px; /* 圆角矩形 */
+  padding: 12px 32px;
+  background-color: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 30px;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.3s ease; /* 平滑过渡效果 */
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s ease;
 }
 
 .load-more-btn:hover {
-  background-color: #40e0d0; /* 悬停时背景变为青绿色 */
-  color: white; /* 悬停时文字变为白色 */
-  border-color: #40e0d0; /* 悬停时边框变为青绿色 */
+  background-color: #40e0d0;
+  color: white;
+  border-color: #40e0d0;
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
 }
 
 /* 响应式设计 */
@@ -606,7 +417,7 @@ onMounted(async () => {
   }
 
   .tabs-nav {
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .actions-section {
@@ -615,22 +426,14 @@ onMounted(async () => {
 
   .articles-container {
     grid-template-columns: 1fr;
-  }
-
-  .enhanced-article-card {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .image-section {
-    width: 100%;
-    height: 200px;
+    gap: 1.5rem;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .articles-container {
     grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 }
 </style>
