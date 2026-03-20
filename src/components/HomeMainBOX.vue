@@ -14,14 +14,14 @@
     </div>
     <!-- 底部按钮区域 -->
     <div class="bottom">
-      <InteractiveHoverButton 
-        text="更多" 
-        class="bg-[#40e0d0] text-white hover:bg-[#34c7ba]" 
+      <InteractiveHoverButton
+        text="更多"
+        class="bg-[#40e0d0] text-white hover:bg-[#34c7ba]"
         @click="goToMore"
         :loading="loading"
         :disabled="loading"
       />
-      
+
       <!-- 页面跳转加载动画 -->
       <div v-if="loading" class="loading-overlay">
         <div class="loading-spinner">
@@ -50,24 +50,24 @@ const loading = ref(false)
 let timeoutId: number | null = null
 
 // 更合理的高度计算：若未传height，自动计算为"视口高度 - 上下预留空间"
-const Height = computed(() => props.height && props.height !== 'auto' ? props.height : 'auto')
-const bgc = computed(() => props.bg || '#F9F9F9')
+const Height = computed(() => (props.height && props.height !== 'auto' ? props.height : 'auto'))
+const bgc = computed(() => props.bg || '')
 
 // 跳转到更多页面
 const goToMore = () => {
   if (props.morePath) {
     loading.value = true
-    
+
     // 设置超时机制，避免加载时间过长
     if (timeoutId !== null) {
       clearTimeout(timeoutId)
     }
-    
+
     timeoutId = window.setTimeout(() => {
       loading.value = false
       timeoutId = null
     }, 1500) // 1.5秒后自动关闭加载状态
-    
+
     // 使用nextTick确保在路由跳转前显示加载状态
     router.push(props.morePath).finally(() => {
       loading.value = false
@@ -195,8 +195,12 @@ import TextGenerateEffect from './TextGenerateEffect.vue'
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-text {

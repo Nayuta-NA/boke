@@ -10,28 +10,21 @@
     </div>
 
     <div class="gallery-container" v-if="provincePhotos.length > 0">
-      <div class="gallery-masonry">
+      <!-- 瀑布流布局 -->
+      <div class="waterfall-grid">
         <div
           v-for="(photo, index) in provincePhotos"
           :key="photo.id || index"
-          class="masonry-item"
-          :class="getMasonryClass(index)"
+          class="waterfall-item"
         >
           <div class="photo-card">
-            <div class="photo-wrapper">
+            <!-- 右上角删除按钮 -->
+            <button class="delete-btn" @click.stop="deletePhoto(photo.id)">
+              <CloseOutlined />
+            </button>
+
+            <div class="photo-wrapper" @click="openPhotoModal(photo, index)">
               <img :src="photo.url" :alt="photo.name" class="photo-image" loading="lazy" />
-              <div class="photo-overlay">
-                <div class="photo-details">
-                  <h3 class="photo-title">{{ photo.name }}</h3>
-                  <div class="photo-meta">
-                    <span class="location">{{ photo.location }}</span>
-                    <span class="year">{{ photo.year }}</span>
-                  </div>
-                  <div class="photo-actions">
-                    <a-button @click="deletePhoto(photo.id)" danger size="small"> 删除 </a-button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -45,6 +38,46 @@
       </button>
     </div>
 
+    <!-- 照片详情模态框 -->
+    <div v-if="isPhotoModalOpen" class="photo-modal-overlay" @click="closePhotoModal">
+      <div class="photo-modal-content" @click.stop>
+        <button class="modal-close-btn" @click="closePhotoModal">
+          <CloseOutlined />
+        </button>
+
+        <!-- 左右切换按钮 -->
+        <button class="nav-btn prev-btn" @click="navigatePhoto(-1)" :disabled="currentIndex === 0">
+          <LeftOutlined />
+        </button>
+        <button
+          class="nav-btn next-btn"
+          @click="navigatePhoto(1)"
+          :disabled="currentIndex === provincePhotos.length - 1"
+        >
+          <RightOutlined />
+        </button>
+
+        <!-- 单张大图展示 -->
+        <div class="photo-viewer">
+          <img :src="currentPhoto?.url" :alt="currentPhoto?.name" class="viewer-image" />
+        </div>
+
+        <!-- 底部计数器和导航点 -->
+        <div class="modal-footer">
+          <span class="photo-counter">{{ currentIndex + 1 }} / {{ provincePhotos.length }}</span>
+          <div class="pagination-dots">
+            <span
+              v-for="(photo, index) in provincePhotos"
+              :key="photo.id || index"
+              class="dot"
+              :class="{ active: index === currentIndex }"
+              @click="goToPhoto(index)"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 上传照片模态框 -->
     <a-modal
       v-model:open="uploadModalVisible"
@@ -55,9 +88,9 @@
     >
       <a-form :model="uploadForm" layout="vertical">
         <a-form-item label="选择照片" required>
-          <a-upload
+          <a-upload-dragger
             name="image"
-            :multiple="false"
+            :multiple="true"
             :showUploadList="true"
             :beforeUpload="beforeUpload"
             :accept="'image/*'"
@@ -65,28 +98,19 @@
             :fileList="fileList"
             @remove="handleRemoveFile"
           >
-            <a-button> <UploadOutlined /> 选择图片 </a-button>
-          </a-upload>
-          <div v-if="uploadForm.url" class="image-preview">
-            <img :src="uploadForm.url" alt="预览" class="preview-image" />
+            <p class="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p class="ant-upload-text">点击或拖拽文件到此区域上传</p>
+            <p class="ant-upload-hint">支持单次或批量上传，每次最多上传 10 张图片</p>
+          </a-upload-dragger>
+
+          <!-- 预览区域 -->
+          <div v-if="previewImages.length > 0" class="preview-grid">
+            <div v-for="(img, index) in previewImages" :key="index" class="preview-item">
+              <img :src="img" alt="预览" class="preview-image" />
+            </div>
           </div>
-        </a-form-item>
-
-        <a-form-item label="照片名称" required>
-          <a-input v-model:value="uploadForm.name" placeholder="请输入照片名称" />
-        </a-form-item>
-
-        <a-form-item label="地点" required>
-          <a-input v-model:value="uploadForm.location" placeholder="请输入地点" />
-        </a-form-item>
-
-        <a-form-item label="年份" required>
-          <a-input-number
-            v-model:value="uploadForm.year"
-            :min="1900"
-            :max="new Date().getFullYear()"
-            style="width: 100%"
-          />
         </a-form-item>
       </a-form>
     </a-modal>
@@ -97,7 +121,15 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { ArrowLeftOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import {
+  ArrowLeftOutlined,
+  PlusOutlined,
+  UploadOutlined,
+  CloseOutlined,
+  LeftOutlined,
+  RightOutlined,
+  InboxOutlined,
+} from '@ant-design/icons-vue'
 import { useTravelsStore } from '@/stores/travels'
 import axios from 'axios'
 
@@ -113,29 +145,53 @@ const provincePhotos = computed(() => {
   return travelsStore.travels.filter((photo) => photo.province === province.value)
 })
 
+// 模态框相关
+const isPhotoModalOpen = ref(false)
+const currentPhoto = ref(null)
+const currentIndex = ref(0)
+
+// 打开照片模态框
+const openPhotoModal = (photo, index) => {
+  currentPhoto.value = photo
+  currentIndex.value = index
+  isPhotoModalOpen.value = true
+}
+
+// 关闭照片模态框
+const closePhotoModal = () => {
+  isPhotoModalOpen.value = false
+  currentPhoto.value = null
+  currentIndex.value = 0
+}
+
+// 导航照片
+const navigatePhoto = (direction) => {
+  const newIndex = currentIndex.value + direction
+  if (newIndex >= 0 && newIndex < provincePhotos.value.length) {
+    currentIndex.value = newIndex
+    currentPhoto.value = provincePhotos.value[newIndex]
+  }
+}
+
+// 跳转到指定照片
+const goToPhoto = (index) => {
+  currentIndex.value = index
+  currentPhoto.value = provincePhotos.value[index]
+}
+
 // 上传相关
 const uploadModalVisible = ref(false)
 const uploadConfirmLoading = ref(false)
 const fileList = ref([])
+const previewImages = ref([])
 
 const uploadForm = reactive({
   url: '',
+  province: '',
   name: '',
   location: '',
-  province: '',
   year: new Date().getFullYear(),
 })
-
-// 根据索引获取网格类名
-const getMasonryClass = (index) => {
-  // 特殊布局规则
-  if (index === 0) return 'featured' // 第一张图片作为特色图片
-  if (index % 7 === 1) return 'wide' // 每第7n+1张图片横向扩展
-  if (index % 9 === 3) return 'tall' // 每第9n+3张图片纵向扩展
-  if (index % 11 === 5) return 'large' // 每第11n+5张图片大尺寸
-  if (index % 5 === 0 && index !== 0) return 'medium' // 每第5n张图片中等尺寸
-  return 'small' // 默认小尺寸
-}
 
 // 返回上一页
 const goBack = () => {
@@ -161,47 +217,56 @@ const resetUploadForm = () => {
   uploadForm.location = ''
   uploadForm.year = new Date().getFullYear()
   fileList.value = []
+  previewImages.value = []
 }
 
-// 处理上传照片
+// 处理上传照片 - 修改为支持批量上传
 const handleUploadPhoto = async () => {
-  if (
-    !uploadForm.url ||
-    !uploadForm.name ||
-    !uploadForm.location ||
-    !uploadForm.province ||
-    !uploadForm.year
-  ) {
-    message.error('请填写完整信息')
+  if (fileList.value.length === 0) {
+    message.error('请选择照片')
     return
   }
 
   uploadConfirmLoading.value = true
   try {
-    // 确保上传的URL被正确传递
-    const travelData = {
-      ...uploadForm,
-      url: uploadForm.url, // 显式传递url字段
+    // 创建文件列表的副本，避免在上传过程中被修改
+    const filesToUpload = [...fileList.value]
+
+    // 批量上传所有选中的图片 - 改为串行处理，避免并发冲突
+    for (const fileItem of filesToUpload) {
+      // 从 response 中获取正确的 URL
+      const imageUrl = fileItem.url || `http://localhost:5000${fileItem.response?.url}`
+
+      const travelData = {
+        url: imageUrl,
+        province: province.value,
+        name: uploadForm.name,
+        location: uploadForm.location,
+        year: uploadForm.year,
+      }
+      console.log('上传旅行数据:', travelData) // 调试用
+      await travelsStore.createTravel(travelData)
     }
-    await travelsStore.createTravel(travelData)
-    message.success('照片上传成功')
+
+    message.success(`成功上传 ${filesToUpload.length} 张照片`)
     uploadModalVisible.value = false
     resetUploadForm()
-    await travelsStore.fetchTravels() // 重新获取数据
+
+    // 重新获取最新数据，确保显示所有照片
+    await travelsStore.fetchTravels()
   } catch (error) {
-    message.error('上传照片失败: ' + error.message)
+    message.error('上传照片失败：' + error.message)
   } finally {
     uploadConfirmLoading.value = false
   }
 }
 
-// 自定义上传函数
+// 自定义上传函数 - 修改为累积添加文件
 const customUpload = async (options) => {
   const formData = new FormData()
   formData.append('image', options.file)
 
   try {
-    // 使用与API配置一致的上传地址
     const response = await axios.post('/api/upload', formData, {
       baseURL: 'http://localhost:5000',
       headers: {
@@ -210,26 +275,46 @@ const customUpload = async (options) => {
     })
 
     if (response.data.success) {
-      // 确保URL包含完整的后端服务器地址
-      uploadForm.url = `http://localhost:5000${response.data.url}`
-      fileList.value = [
-        { uid: options.file.uid, name: options.file.name, status: 'done', response: response.data },
-      ]
-      message.success('图片上传成功')
+      const imageUrl = `http://localhost:5000${response.data.url}`
+
+      // 累积添加文件到列表，而不是替换
+      fileList.value.push({
+        uid: options.file.uid,
+        name: options.file.name,
+        status: 'done',
+        url: imageUrl,
+        response: response.data,
+      })
+
+      // 累积添加预览图片
+      previewImages.value.push(imageUrl)
+
+      message.success(`${options.file.name} 上传成功`)
+      options.onSuccess(response.data)
     } else {
       message.error('图片上传失败')
       options.onError(new Error('上传失败'))
     }
   } catch (error) {
-    message.error('图片上传失败: ' + error.message)
+    message.error('图片上传失败：' + error.message)
     options.onError(error)
   }
 }
 
-// 文件移除
-const handleRemoveFile = () => {
-  uploadForm.url = ''
-  fileList.value = []
+// 文件移除 - 修改为只移除指定文件
+const handleRemoveFile = (file) => {
+  // 从 fileList 中移除对应的文件
+  fileList.value = fileList.value.filter((item) => item.uid !== file.uid)
+
+  // 从 previewImages 中移除对应的预览图
+  if (file.url) {
+    previewImages.value = previewImages.value.filter((url) => url !== file.url)
+  }
+
+  // 如果所有文件都被移除，重置上传表单的 url
+  if (fileList.value.length === 0) {
+    uploadForm.url = ''
+  }
 }
 
 // 限制上传文件类型
@@ -240,7 +325,7 @@ const beforeUpload = (file) => {
   }
   const isLt5M = file.size / 1024 / 1024 < 5
   if (!isLt5M) {
-    message.error('图片大小不能超过5MB!')
+    message.error('图片大小不能超过 5MB!')
   }
   return isImage && isLt5M
 }
@@ -250,9 +335,9 @@ const deletePhoto = async (photoId) => {
   try {
     await travelsStore.deleteTravel(photoId)
     message.success('照片删除成功')
-    await travelsStore.fetchTravels() // 重新获取数据
+    await travelsStore.fetchTravels()
   } catch (error) {
-    message.error('删除照片失败: ' + error.message)
+    message.error('删除照片失败：' + error.message)
   }
 }
 
@@ -325,134 +410,77 @@ onMounted(async () => {
   width: 100%;
 }
 
-.gallery-masonry {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  grid-auto-rows: 10px;
-  gap: 20px;
+/* 瀑布流布局 */
+.waterfall-grid {
+  column-count: 4;
+  column-gap: 16px;
   padding: 10px;
 }
 
-.masonry-item {
+.waterfall-item {
   break-inside: avoid;
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.masonry-item.featured {
-  grid-column: span 2;
-  grid-row: span 4;
-}
-
-.masonry-item.wide {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
-.masonry-item.tall {
-  grid-row: span 3;
-}
-
-.masonry-item.large {
-  grid-column: span 2;
-  grid-row: span 3;
-}
-
-.masonry-item.medium {
-  grid-row: span 2;
-}
-
-.masonry-item.small {
-  grid-row: span 1;
+  margin-bottom: 16px;
 }
 
 .photo-card {
   position: relative;
-  height: 0; /* 高度由 padding-top 控制 */
   overflow: hidden;
-  border-radius: 16px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background: white;
   transition: all 0.3s ease;
 }
 
 .photo-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 右上角删除按钮 */
+.delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 59, 48, 0.9);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 20;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.photo-card:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 59, 48, 1);
+  transform: scale(1.15);
 }
 
 .photo-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.masonry-item.featured .photo-wrapper {
-}
-
-.masonry-item.tall .photo-wrapper,
-.masonry-item.large .photo-wrapper {
+  cursor: pointer;
 }
 
 .photo-image {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
-  transition: transform 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition: transform 0.5s ease;
 }
 
 .photo-card:hover .photo-image {
-  transform: scale(1.08);
-}
-
-.photo-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  display: flex;
-  align-items: flex-end;
-}
-
-.photo-card:hover .photo-overlay {
-  opacity: 1;
-}
-
-.photo-details {
-  padding: 20px;
-  color: white;
-  transform: translateY(10px);
-  transition: transform 0.3s ease;
-}
-
-.photo-card:hover .photo-details {
-  transform: translateY(0);
-}
-
-.photo-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.photo-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.location {
-  font-weight: 500;
-}
-
-.year {
-  font-weight: 300;
+  transform: scale(1.05);
 }
 
 .no-photos {
@@ -469,24 +497,179 @@ onMounted(async () => {
   margin: 0;
 }
 
+/* 照片模态框样式 */
+.photo-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.photo-modal-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* 左右切换按钮 */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 32px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.prev-btn {
+  left: 30px;
+}
+
+.next-btn {
+  right: 30px;
+}
+
+/* 照片查看器 */
+.photo-viewer {
+  width: 100%;
+  height: 100%;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* 底部计数器和导航点 */
+.modal-footer {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  z-index: 100;
+}
+
+.photo-counter {
+  font-size: 18px;
+  color: white;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.pagination-dots {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(1.2);
+}
+
+.dot.active {
+  background: white;
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* 响应式设计 */
 @media (max-width: 1400px) {
-  .gallery-masonry {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 16px;
-  }
-
-  .masonry-item.featured,
-  .masonry-item.large {
-    grid-column: span 2;
-    grid-row: span 3;
+  .waterfall-grid {
+    column-count: 3;
   }
 }
 
 @media (max-width: 1024px) {
-  .gallery-masonry {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 14px;
+  .waterfall-grid {
+    column-count: 3;
+    column-gap: 14px;
   }
 
   .header-section {
@@ -495,6 +678,26 @@ onMounted(async () => {
 
   .province-title {
     font-size: 28px;
+  }
+
+  .nav-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+  }
+
+  .prev-btn {
+    left: 20px;
+  }
+
+  .next-btn {
+    right: 20px;
+  }
+
+  .delete-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
   }
 }
 
@@ -509,21 +712,9 @@ onMounted(async () => {
     padding: 16px 12px;
   }
 
-  .gallery-masonry {
-    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
-    gap: 16px;
-  }
-
-  .masonry-item.featured,
-  .masonry-item.wide,
-  .masonry-item.large,
-  .masonry-item.tall {
-    grid-column: span 1 !important;
-    grid-row: span 1 !important;
-  }
-
-  .photo-wrapper {
-    aspect-ratio: 16/9 !important;
+  .waterfall-grid {
+    column-count: 2;
+    column-gap: 12px;
   }
 
   .province-title {
@@ -534,66 +725,42 @@ onMounted(async () => {
     padding: 8px 16px;
     font-size: 14px;
   }
+
+  .nav-btn {
+    width: 45px;
+    height: 45px;
+    font-size: 24px;
+  }
+
+  .modal-close-btn {
+    top: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    font-size: 28px;
+  }
+
+  .modal-footer {
+    bottom: 30px;
+  }
+
+  .delete-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    top: 8px;
+    right: 8px;
+  }
 }
 
 @media (max-width: 480px) {
-  .province-detail-view {
-    padding: 10px;
-  }
-
-  .header-section {
-    padding: 12px;
+  .waterfall-grid {
+    column-count: 2;
+    column-gap: 10px;
   }
 
   .province-title {
     font-size: 24px;
   }
-
-  .gallery-masonry {
-    gap: 12px;
-  }
-}
-
-/* 新增：为不同尺寸的照片设置固定宽高比 */
-.masonry-item .photo-card {
-  /* 默认小尺寸 */
-  padding-top: 75%; /* 4:3 比例 */
-}
-
-.masonry-item.featured .photo-card {
-  padding-top: 62.5%; /* 16:10 比例 */
-}
-
-.masonry-item.wide .photo-card {
-  padding-top: 50%; /* 2:1 比例 */
-}
-
-.masonry-item.tall .photo-card {
-  padding-top: 125%; /* 4:5 比例 */
-}
-
-.masonry-item.large .photo-card {
-  padding-top: 66.67%; /* 3:2 比例 */
-}
-
-.masonry-item.medium .photo-card {
-  padding-top: 100%; /* 1:1 比例 */
-}
-
-/* 修正图片容器样式 */
-.photo-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.masonry-item.featured .photo-wrapper {
-}
-
-.masonry-item.tall .photo-wrapper,
-.masonry-item.large .photo-wrapper {
 }
 </style>

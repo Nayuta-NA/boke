@@ -13,20 +13,17 @@
       </div>
       <div class="sidebar-content">
         <div
-          v-for="article in selectedProvinceArticles"
-          :key="article.id"
+          v-for="travel in selectedProvinceArticles"
+          :key="travel.id"
           class="article-card"
-          @click="goToArticle(article.id)"
+          @click="goToArticle(travel.id)"
         >
-          <img :src="article.cover || article.url" :alt="article.title" class="article-cover" />
+          <img :src="travel.cover" :alt="travel.title" class="article-cover" />
           <div class="article-info">
-            <h3 class="article-title">{{ article.title || article.name }}</h3>
-            <p class="article-excerpt">{{ article.excerpt || article.location }}</p>
+            <h3 class="article-title">{{ travel.title }}</h3>
+            <p class="article-excerpt">{{ travel.city }}</p>
             <div class="article-meta">
-              <span class="article-location">📍 {{ article.province || article.location }}</span>
-              <span class="article-year">{{
-                new Date(article.date || `${article.year}-01-01`).getFullYear()
-              }}</span>
+              <span class="article-year">{{ travel.date }}</span>
             </div>
           </div>
         </div>
