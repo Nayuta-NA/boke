@@ -1,4 +1,13 @@
 // 统一的文章数据
+export interface Comment {
+  id: number
+  author: string
+  content: string
+  date: string
+  likeCount: number
+}
+
+// 统一的文章数据
 export interface Article {
   id: number
   title: string
@@ -12,6 +21,8 @@ export interface Article {
   commentCount: number
   link: string
   tags?: string[]
+  likeCount?: number
+  comments?: Comment[]
 }
 
 // 统一的文章数据

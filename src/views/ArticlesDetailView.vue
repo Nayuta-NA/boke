@@ -1,13 +1,13 @@
 <template>
   <div class="article-detail-container">
+    <!-- 关闭按钮 - 固定在页面右上角 -->
+    <div class="close-button-fixed" @click="goBack">
+      <CloseOutlined />
+    </div>
+
     <!-- 主要内容区域 -->
     <div class="detail-main" v-if="currentArticle">
       <div class="content-wrapper">
-        <!-- 关闭按钮 - 放在白色区域内右上角 -->
-        <div class="close-button" @click="goBack">
-          <CloseOutlined />
-        </div>
-
         <!-- 文章头部 -->
         <div class="article-header">
           <h1 class="article-title">
@@ -21,15 +21,8 @@
               <span class="publish-date">{{ formatDate(currentArticle.date) }}</span>
             </div>
             <div class="meta-right">
-              <span class="meta-item">
-                <LikeOutlined /> {{ currentArticle.commentCount || 0 }}
-              </span>
-              <span class="meta-item">
-                <EyeOutlined /> 674
-              </span>
-              <span class="meta-item">
-                <MessageOutlined /> 7
-              </span>
+              <span class="meta-item"> <LikeOutlined /> {{ currentArticle.likeCount || 0 }} </span>
+              <span class="meta-item"> <MessageOutlined /> {{ comments.length }} </span>
             </div>
           </div>
         </div>
@@ -79,7 +72,7 @@
       <!-- 评论按钮 -->
       <button class="toolbar-btn" @click="handleComment">
         <MessageOutlined />
-        <span class="btn-text">7</span>
+        <span class="btn-text">{{ comments.length }}</span>
       </button>
 
       <!-- 分享按钮 -->
@@ -88,18 +81,14 @@
       </button>
 
       <!-- 编辑按钮（仅登录用户可见） -->
-      <button 
-        v-if="authStore.isAuthenticated" 
-        class="toolbar-btn edit-btn" 
-        @click="openEditDrawer"
-      >
+      <button v-if="authStore.isAuthenticated" class="toolbar-btn edit-btn" @click="openEditDrawer">
         <EditOutlined />
       </button>
 
       <!-- 删除按钮（仅登录用户可见） -->
-      <button 
-        v-if="authStore.isAuthenticated" 
-        class="toolbar-btn delete-btn" 
+      <button
+        v-if="authStore.isAuthenticated"
+        class="toolbar-btn delete-btn"
         @click="showDeleteConfirm"
       >
         <DeleteOutlined />
@@ -113,12 +102,9 @@
       placement="right"
       :width="720"
       :destroy-on-close="true"
+      :z-index="1005"
     >
-      <a-form
-        :model="editForm"
-        layout="vertical"
-        autocomplete="off"
-      >
+      <a-form :model="editForm" layout="vertical" autocomplete="off">
         <a-form-item label="标题" name="title" :rules="[{ required: true, message: '请输入标题' }]">
           <a-input v-model:value="editForm.title" placeholder="请输入标题" size="large" />
         </a-form-item>
@@ -133,9 +119,7 @@
               :show-upload-list="false"
               accept="image/*"
             >
-              <a-button type="dashed" size="large" block>
-                <UploadOutlined /> 选择图片
-              </a-button>
+              <a-button type="dashed" size="large" block> <UploadOutlined /> 选择图片 </a-button>
             </a-upload>
             <div class="upload-hint">支持 JPG、PNG 格式，大小不超过 2MB(原图上传)</div>
             <div v-if="previewUrl" class="image-preview">
@@ -200,11 +184,7 @@
         </a-form-item>
 
         <a-form-item label="内容" name="desc" :rules="[{ required: true, message: '请输入内容' }]">
-          <a-textarea
-            v-model:value="editForm.desc"
-            placeholder="请输入文章内容"
-            :rows="12"
-          />
+          <a-textarea v-model:value="editForm.desc" placeholder="请输入文章内容" :rows="12" />
         </a-form-item>
 
         <a-form-item label="标签" name="tags">
@@ -219,10 +199,84 @@
       </a-form>
 
       <template #footer>
-        <a-button @click="handleEditCancel" style="margin-right: 8px;">取消</a-button>
+        <a-button @click="handleEditCancel" style="margin-right: 8px">取消</a-button>
         <a-button @click="handleEditSave" type="primary">保存</a-button>
       </template>
     </a-drawer>
+
+    <!-- 评论区 -->
+    <div class="comments-section" v-if="currentArticle">
+      <div class="comments-container bg-#ffffff border-radius-10">
+        <!-- 评论输入框 -->
+        <div class="comment-input-area">
+          <a-textarea
+            v-model:value="commentInput"
+            placeholder="说点什么~"
+            :rows="3"
+            class="comment-textarea"
+          />
+          <div class="comment-input-footer">
+            <div class="comment-user-info">
+              <a-avatar :size="32" class="user-avatar">
+                <template #icon>
+                  <UserOutlined />
+                </template>
+              </a-avatar>
+              <span class="user-name">{{ authStore.user?.username || '访客' }}</span>
+            </div>
+            <a-button type="primary" @click="handlePostComment" :disabled="!commentInput.trim()">
+              评论
+            </a-button>
+          </div>
+        </div>
+
+        <!-- 评论标题 -->
+        <div class="comments-header">
+          <h3 class="comments-title">评论 {{ comments.length }}</h3>
+        </div>
+
+        <!-- 评论列表 -->
+        <div class="comments-list">
+          <div v-for="comment in comments" :key="comment.id" class="comment-item">
+            <div class="comment-avatar">
+              <a-avatar :size="40" class="avatar-icon">
+                <template #icon>
+                  <UserOutlined />
+                </template>
+              </a-avatar>
+            </div>
+            <div class="comment-content">
+              <div class="comment-header">
+                <span class="comment-author">{{ comment.author }}</span>
+                <span class="comment-date">{{ formatDate(comment.date) }}</span>
+              </div>
+              <div class="comment-text">{{ comment.content }}</div>
+              <div class="comment-actions">
+                <div class="comment-action-item" @click="handleLikeComment(comment)">
+                  <LikeOutlined />
+                  <span>{{ comment.likeCount || 0 }}</span>
+                </div>
+                <div class="comment-action-item">
+                  <MessageOutlined />
+                </div>
+                <!-- 删除评论按钮 - 仅登录用户可见 -->
+                <div
+                  v-if="authStore.isAuthenticated"
+                  class="comment-action-item delete-comment-btn"
+                  @click="handleDeleteComment(comment)"
+                >
+                  <DeleteOutlined />
+                  <span>删除</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 到底提示 -->
+        <div class="no-more-text" v-if="comments.length > 0">已经到底了</div>
+      </div>
+    </div>
 
     <!-- 返回顶部按钮 -->
     <div class="back-to-top" @click="scrollToTop">
@@ -245,6 +299,7 @@ import {
   VerticalAlignTopOutlined,
   CloseOutlined,
   UploadOutlined,
+  UserOutlined,
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { useArticlesStore } from '@/stores/articles'
@@ -258,6 +313,31 @@ const showEditDrawer = ref(false)
 const likeCount = ref(0)
 const previewUrl = ref('')
 const selectedFile = ref<File | null>(null)
+const commentInput = ref('')
+const comments = ref([
+  {
+    id: 1,
+    author: '访客',
+    content:
+      '我是一名大学生，正在 b 站看你的视频学习做博客平台，想要凭借这一个项目找到实习岗位，但是随着 ai 发展的如此迅速，我不知道我做这个项目是否还有意义，每次听见你在视频里说没有动力的时候，都想说一句加油！你的视频做的很好。今天看完视频闲来无事打开这个网站看到这篇文章，发现你是如此热爱生活，也找到了幸福。一切都会好的，对吧！',
+    date: '2024-03-13 21:22',
+    likeCount: 1,
+  },
+  {
+    id: 2,
+    author: '访客',
+    content: '真的非常佩服你，热爱生活，工作也完成的不错，虽然我是三个孩子的爸爸，羡慕你 (们)。',
+    date: '2024-02-17 17:01',
+    likeCount: 0,
+  },
+  {
+    id: 3,
+    author: '访客',
+    content: '加油！往好的方向发展。',
+    date: '2024-02-11 12:37',
+    likeCount: 0,
+  },
+])
 
 // 获取文章 store 和认证 store
 const articlesStore = useArticlesStore()
@@ -306,7 +386,7 @@ const beforeUpload = (file: File) => {
     message.error('只能上传图片文件!')
     return false
   }
-  
+
   // 限制为 2MB，避免后端 413 错误
   const isLt2M = file.size / 1024 / 1024 < 2
   if (!isLt2M) {
@@ -315,21 +395,131 @@ const beforeUpload = (file: File) => {
   }
 
   selectedFile.value = file
-  
+
   // 创建预览 URL 并直接更新表单
   const reader = new FileReader()
   reader.onload = (e) => {
     const base64Data = e.target?.result as string
     previewUrl.value = base64Data
     editForm.cover = base64Data
-    console.log('图片已选择，Base64 长度:', base64Data.length, '文件大小:', Math.round(file.size / 1024), 'KB')
+    console.log(
+      '图片已选择，Base64 长度:',
+      base64Data.length,
+      '文件大小:',
+      Math.round(file.size / 1024),
+      'KB',
+    )
   }
   reader.onerror = () => {
     message.error('图片读取失败')
   }
   reader.readAsDataURL(file)
-  
+
   return false // 阻止自动上传
+}
+
+// 发表评论
+const handlePostComment = async () => {
+  if (!commentInput.value.trim()) {
+    message.warning('请输入评论内容')
+    return
+  }
+
+  if (!currentArticle.value) {
+    message.error('文章不存在')
+    return
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/comments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        articleId: currentArticle.value.id,
+        author: authStore.user?.username || '访客',
+        content: commentInput.value,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || '发表评论失败')
+    }
+
+    const newComment = await response.json()
+
+    // 将新评论添加到列表（倒序排列，所以用 push）
+    comments.value.push(newComment)
+    commentInput.value = ''
+
+    // 更新文章的评论数
+    if (currentArticle.value) {
+      currentArticle.value.commentCount = (currentArticle.value.commentCount || 0) + 1
+    }
+
+    message.success('评论成功')
+  } catch (error) {
+    console.error('发表评论失败:', error)
+    message.error('评论失败，请重试')
+  }
+}
+
+// 点赞评论
+const handleLikeComment = (comment: any) => {
+  comment.likeCount = (comment.likeCount || 0) + 1
+  message.success('点赞成功')
+}
+
+// 删除评论
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const handleDeleteComment = async (comment: any) => {
+  if (!currentArticle.value) {
+    message.error('文章不存在')
+    return
+  }
+
+  const articleId = currentArticle.value.id
+
+  Modal.confirm({
+    title: '确认删除',
+    content: '您确定要删除这条评论吗？此操作不可撤销。',
+    okText: '确认删除',
+    okType: 'danger',
+    cancelText: '取消',
+    onOk: async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/comments/${comment.id}?articleId=${articleId}`,
+          {
+            method: 'DELETE',
+          },
+        )
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || '删除评论失败')
+        }
+
+        // 从列表中移除评论
+        comments.value = comments.value.filter((c) => c.id !== comment.id)
+
+        // 更新文章的评论数
+        if (currentArticle.value) {
+          currentArticle.value.commentCount = Math.max(
+            0,
+            (currentArticle.value.commentCount || 0) - 1,
+          )
+        }
+
+        message.success('评论已删除')
+      } catch (error) {
+        console.error('删除评论失败:', error)
+        message.error('删除失败，请重试')
+      }
+    },
+  })
 }
 
 // 删除图片
@@ -347,7 +537,11 @@ const handleLike = () => {
 
 // 评论处理
 const handleComment = () => {
-  message.info('评论功能开发中')
+  // 滚动到评论区
+  const commentsSection = document.querySelector('.comments-section')
+  if (commentsSection) {
+    commentsSection.scrollIntoView({ behavior: 'smooth' })
+  }
 }
 
 // 分享处理
@@ -372,12 +566,15 @@ const handleEditSave = async () => {
     console.log('=== 开始更新文章 ===')
     console.log('文章 ID:', currentArticle.value.id)
     console.log('更新数据:', JSON.stringify(articleData, null, 2))
-    console.log('封面图片数据:', articleData.cover ? `有图片 (${articleData.cover.length} 字符)` : '无图片')
+    console.log(
+      '封面图片数据:',
+      articleData.cover ? `有图片 (${articleData.cover.length} 字符)` : '无图片',
+    )
 
     const updatedArticle = await articlesStore.updateArticle(currentArticle.value.id, articleData)
 
     console.log('更新成功:', updatedArticle)
-    
+
     currentArticle.value = { ...updatedArticle }
     message.success('文章更新成功')
     showEditDrawer.value = false
@@ -454,7 +651,13 @@ onMounted(async () => {
     const article = await articlesStore.fetchArticleById(articleId)
     if (article) {
       currentArticle.value = { ...article }
-      likeCount.value = article.commentCount || 0
+      // 使用文章的 likeCount，如果没有则使用 commentCount 作为默认值
+      likeCount.value = article.likeCount || article.commentCount || 0
+
+      // 如果文章有评论数据，则使用，否则使用空数组
+      if (article.comments && article.comments.length > 0) {
+        comments.value = article.comments
+      }
 
       const event = new Event('loaded')
       window.dispatchEvent(event)
@@ -473,6 +676,10 @@ onMounted(async () => {
 <style scoped>
 .article-detail-container {
   min-height: 100vh;
+  margin-top: -7vh;
+  z-index: 1000;
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
   background: #ffffff;
   padding: 0;
   position: relative;
@@ -491,11 +698,11 @@ onMounted(async () => {
   position: relative;
 }
 
-/* 关闭按钮样式 - 位于白色内容区域内 */
-.close-button {
-  position: absolute;
-  top: 0;
-  right: 0;
+/* 关闭按钮样式 - 固定在页面右上角 */
+.close-button-fixed {
+  position: fixed;
+  top: 90px;
+  right: 40px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -507,16 +714,14 @@ onMounted(async () => {
   font-size: 20px;
   color: #666;
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 1000;
 }
 
-.close-button:hover {
+.close-button-fixed:hover {
   background: rgba(0, 0, 0, 0.1);
-  color: #333;
+  color: #ff4d4f;
   transform: rotate(90deg);
 }
-
-/* 移除对header的样式影响，避免与顶部导航栏冲突 */
 
 /* 文章头部样式 */
 .article-header {
@@ -668,9 +873,19 @@ onMounted(async () => {
   color: #666;
 }
 
+.toolbar-btn.close-btn {
+  font-size: 20px;
+}
+
 .toolbar-btn:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transform: translateY(-2px);
+}
+
+.toolbar-btn.close-btn:hover {
+  background: #f5f5f5;
+  color: #ff4d4f;
+  border-color: #ff4d4f;
 }
 
 .toolbar-btn.edit-btn:hover {
@@ -783,6 +998,151 @@ onMounted(async () => {
   }
 }
 
+/* 评论区样式 */
+.comments-section {
+  background: #f5f7fa;
+  padding: 60px 0;
+  margin-top: 80px;
+}
+
+.comments-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.comment-input-area {
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.comment-textarea {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.comment-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.comment-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  background: #1890ff;
+}
+
+.user-name {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.comments-header {
+  margin-bottom: 24px;
+}
+
+.comments-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  overflow-y: auto;
+  gap: 20px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.comment-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.comment-avatar {
+  flex-shrink: 0;
+}
+
+.avatar-icon {
+  background: #1890ff;
+}
+
+.comment-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-author {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.comment-date {
+  font-size: 13px;
+  color: #999;
+}
+
+.comment-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 16px;
+  text-align: justify;
+}
+
+.comment-actions {
+  display: flex;
+  gap: 20px;
+}
+
+.comment-action-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.comment-action-item:hover {
+  color: #1890ff;
+}
+
+.comment-action-item.delete-comment-btn:hover {
+  color: #ff4d4f;
+}
+
+.no-more-text {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  color: #999;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .detail-main {
@@ -834,14 +1194,6 @@ onMounted(async () => {
     bottom: 20px;
     width: 44px;
     height: 44px;
-  }
-
-  .close-button {
-    top: 16px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
   }
 }
 </style>

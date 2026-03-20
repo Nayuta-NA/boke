@@ -1,5 +1,41 @@
 <template>
   <div class="travel-view-container">
+    <!-- 遮罩层 -->
+    <div v-if="isSidebarOpen" class="sidebar-overlay" @click="closeSidebar"></div>
+
+    <!-- 左侧文章卡片侧边栏 -->
+    <div v-if="isSidebarOpen" class="article-sidebar">
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">{{ selectedProvinceName }}的旅行故事</h2>
+        <button class="close-btn" @click="closeSidebar">
+          <CloseOutlined />
+        </button>
+      </div>
+      <div class="sidebar-content">
+        <div
+          v-for="article in selectedProvinceArticles"
+          :key="article.id"
+          class="article-card"
+          @click="goToArticle(article.id)"
+        >
+          <img :src="article.cover || article.url" :alt="article.title" class="article-cover" />
+          <div class="article-info">
+            <h3 class="article-title">{{ article.title || article.name }}</h3>
+            <p class="article-excerpt">{{ article.excerpt || article.location }}</p>
+            <div class="article-meta">
+              <span class="article-location">📍 {{ article.province || article.location }}</span>
+              <span class="article-year">{{
+                new Date(article.date || `${article.year}-01-01`).getFullYear()
+              }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="selectedProvinceArticles.length === 0" class="no-articles">
+          <p>暂无该省份的旅行记录</p>
+        </div>
+      </div>
+    </div>
+
     <div class="china-map-container">
       <div ref="mapContainer" class="map-container"></div>
     </div>
@@ -16,7 +52,7 @@
           v-for="province in highlightedProvinces"
           :key="province"
           class="province-card"
-          @click="selectProvince(province)"
+          @click="goToProvinceDetail(province)"
         >
           <div class="province-header">
             <h3 class="province-name">{{ province }}</h3>
@@ -56,9 +92,7 @@
             :fileList="fileList"
             @remove="handleRemoveFile"
           >
-            <a-button>
-              <UploadOutlined /> 选择图片
-            </a-button>
+            <a-button> <UploadOutlined /> 选择图片 </a-button>
           </a-upload>
           <div v-if="newRecordForm.url" class="image-preview">
             <img :src="newRecordForm.url" alt="预览" class="preview-image" />
@@ -98,14 +132,16 @@
 import { ref, onMounted, onBeforeUnmount, watch, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, UploadOutlined, CloseOutlined } from '@ant-design/icons-vue'
 import * as echarts from 'echarts'
 import chinaJson from '@/components/map/chinaMap.json'
 import { useTravelsStore } from '@/stores/travels'
+import { useArticlesStore } from '@/stores/articles'
 import axios from 'axios'
 
 const router = useRouter()
 const travelsStore = useTravelsStore()
+const articlesStore = useArticlesStore()
 
 // 省份到省会的映射
 const provinceToCapital = ref({
@@ -193,6 +229,11 @@ const newRecordForm = reactive({
 // 文件列表
 const fileList = ref([])
 
+// 侧边栏相关
+const isSidebarOpen = ref(false)
+const selectedProvinceName = ref('')
+const selectedProvinceArticles = ref([])
+
 // 自定义上传函数
 const customUpload = async (options) => {
   const formData = new FormData()
@@ -204,10 +245,12 @@ const customUpload = async (options) => {
         'Content-Type': 'multipart/form-data',
       },
     })
-    
+
     if (response.data.success) {
       newRecordForm.url = response.data.url
-      fileList.value = [{ uid: options.file.uid, name: options.file.name, status: 'done', response: response.data }]
+      fileList.value = [
+        { uid: options.file.uid, name: options.file.name, status: 'done', response: response.data },
+      ]
       message.success('图片上传成功')
     } else {
       message.error('图片上传失败')
@@ -266,7 +309,7 @@ const updateMap = () => {
     let provinceName = feature.properties.name
     provinceName = provinceName.replace(/省|自治区|直辖市|特别行政区/g, '')
     const isHighlighted = highlightedProvinces.value.some(
-      (prov) => provinceName.includes(prov) || prov.includes(provinceName)
+      (prov) => provinceName.includes(prov) || prov.includes(provinceName),
     )
     const capitalInfo = provinceToCapital.value[provinceName] || { name: '', lng: null, lat: null }
 
@@ -458,13 +501,14 @@ const updateMap = () => {
   try {
     chart.value.setOption(option)
 
-    // 添加点击事件监听
+    // 添加点击事件监听 - 点击地图省份时显示文章侧边栏
     chart.value.on('click', (params) => {
       if (params.seriesType === 'map' && params.data.value === 1) {
-        // 只有已点亮的省份才可点击展示照片
+        // 只有已点亮的省份才可点击
         const provinceName = params.data.displayName
         if (provinceName) {
-          showProvincePhotos(provinceName)
+          console.log('点击地图省份:', provinceName)
+          selectProvince(provinceName)
         }
       }
     })
@@ -560,14 +604,12 @@ const handleCancelCreate = () => {
 
 // 获取省份照片数量
 const getProvincePhotoCount = (province) => {
-  return travelsStore.travels.filter(travel => travel.province === province).length
+  return travelsStore.travels.filter((travel) => travel.province === province).length
 }
 
 // 获取省份照片
 const getProvincePhotos = (province) => {
-  return travelsStore.travels
-    .filter(travel => travel.province === province)
-    .slice(0, 3) // 只显示前3张
+  return travelsStore.travels.filter((travel) => travel.province === province).slice(0, 3) // 只显示前3张
 }
 
 // 显示省份照片
@@ -584,8 +626,47 @@ const closePhotoModal = () => {
   currentProvincePhotos.value = []
 }
 
-// 选择省份（跳转到详情页面）
-const selectProvince = (province) => {
+// 选择省份（从 articles.json 筛选该省份的旅游文章）
+const selectProvince = async (province) => {
+  console.log('点击省份:', province)
+
+  // 确保已加载文章数据
+  if (articlesStore.articles.length === 0) {
+    await articlesStore.fetchArticles()
+  }
+
+  // 从 articles.json 中筛选该省份的旅游文章
+  const allArticles = articlesStore.articles
+
+  const filteredArticles = allArticles.filter(
+    (article) => article.category === '旅游' && article.province === province,
+  )
+
+  console.log(`筛选 ${province} 的文章:`, filteredArticles)
+
+  if (filteredArticles.length === 0) {
+    message.info(`暂无${province}的旅行记录`)
+  }
+
+  selectedProvinceName.value = province
+  selectedProvinceArticles.value = filteredArticles
+  isSidebarOpen.value = true
+}
+
+// 关闭侧边栏
+const closeSidebar = () => {
+  isSidebarOpen.value = false
+  selectedProvinceName.value = ''
+  selectedProvinceArticles.value = []
+}
+
+// 跳转到文章详情页
+const goToArticle = (articleId) => {
+  router.push(`/articles/${articleId}`)
+}
+
+// 跳转到省份详情页
+const goToProvinceDetail = (province) => {
   router.push(`/travel/${province}`)
 }
 
@@ -600,7 +681,7 @@ watch(
     provinceToCapital,
   ],
   updateMap,
-  { deep: true }
+  { deep: true },
 )
 
 // 生命周期钩子
@@ -767,5 +848,147 @@ onBeforeUnmount(() => {
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+/* 遮罩层 */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* 左侧文章卡片侧边栏 */
+.article-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 450px;
+  background: white;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.sidebar-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background-color: #f3f4f6;
+  color: #1a1a1a;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.article-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.article-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.article-cover {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.article-info {
+  padding: 16px;
+}
+
+.article-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.article-excerpt {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.article-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.article-year {
+  font-weight: 500;
+}
+
+.no-articles {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+  font-size: 16px;
 }
 </style>

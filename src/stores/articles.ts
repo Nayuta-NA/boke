@@ -1,6 +1,14 @@
 import { defineStore } from 'pinia';
 import { articleAPI } from '@/lib/api';
 
+export interface Comment {
+  id: number;
+  author: string;
+  content: string;
+  date: string;
+  likeCount: number;
+}
+
 export interface Article {
   id: number;
   title: string;
@@ -14,6 +22,8 @@ export interface Article {
   commentCount: number;
   link: string;
   tags?: string[];
+  likeCount?: number;
+  comments?: Comment[];
 }
 
 export const useArticlesStore = defineStore('articles', {
