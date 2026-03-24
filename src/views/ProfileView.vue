@@ -69,6 +69,57 @@
                 </span>
               </div>
             </div>
+
+            <!-- 文章统计图表 -->
+            <div class="profile-section">
+              <h2 class="section-title">文章统计</h2>
+              <div class="chart-container">
+                <div class="chart-header">
+                  <div class="chart-tabs">
+                    <button 
+                      :class="['chart-tab', { active: chartPeriod === '7' }]"
+                      @click="chartPeriod = '7'"
+                    >
+                      近 7 天
+                    </button>
+                    <button 
+                      :class="['chart-tab', { active: chartPeriod === '30' }]"
+                      @click="chartPeriod = '30'"
+                    >
+                      近 30 天
+                    </button>
+                  </div>
+                </div>
+                <div ref="chartRef" class="echart-chart"></div>
+              </div>
+              
+              <!-- 全局快速配置入口 -->
+              <div class="quick-config-section">
+                <div class="quick-config-card" @click="goToConfig">
+                  <div class="config-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M19.4 15C19.7988 14.8291 20.1096 14.5009 20.2775 14.0901C20.4454 13.6793 20.4597 13.2209 20.3176 12.8001L19.9976 11.8501C20.0644 11.4201 20.0644 10.9801 19.9976 10.5501L20.3176 9.6001C20.4597 9.17927 20.4454 8.72094 20.2775 8.31014C20.1096 7.89934 19.7988 7.57115 19.4 7.4001L18.9176 7.1901C18.5568 6.8701 18.2576 6.4901 18.0376 6.0701L17.6376 5.3101C17.4268 4.9101 17.0768 4.5901 16.6576 4.4101C16.2384 4.2301 15.7776 4.2101 15.3476 4.3501L14.8276 4.5201C14.4168 4.3501 14.0368 4.1201 13.7076 3.8401L13.2776 3.4701C12.9768 3.2101 12.5968 3.0501 12.1976 3.0101C11.7984 2.9701 11.3976 3.0501 11.0476 3.2401L10.5676 3.5001C10.1568 3.6701 9.7168 3.7501 9.2776 3.7301H8.7276C8.2776 3.7301 7.8476 3.9101 7.5376 4.2301L7.1876 4.5901C6.8668 4.9201 6.4768 5.1701 6.0476 5.3201L5.5876 5.4801C5.1576 5.6301 4.7876 5.9101 4.5376 6.2801C4.2876 6.6501 4.1676 7.0901 4.1976 7.5301L4.2776 8.0701C4.1168 8.4801 4.0368 8.9201 4.0476 9.3601C4.0584 9.8001 4.1576 10.2301 4.3376 10.6301L4.5876 11.1701C4.5876 11.6101 4.4976 12.0401 4.3276 12.4501L4.0876 13.0201C3.9268 13.4001 3.8776 13.8201 3.9476 14.2301C4.0176 14.6401 4.2076 15.0201 4.4876 15.3201L4.8376 15.6901C5.1568 16.0301 5.3768 16.4501 5.4776 16.9101C5.5784 17.3701 5.5576 17.8501 5.4176 18.3001L5.1576 19.1401C5.0268 19.5601 5.0676 20.0201 5.2676 20.4101C5.4676 20.8001 5.8076 21.0901 6.2176 21.2101L6.6776 21.3501C7.0968 21.4801 7.4568 21.7301 7.7276 22.0701C7.9984 22.4101 8.3676 22.6501 8.7876 22.7601C9.2076 22.8701 9.6576 22.8401 10.0676 22.6701L10.5476 22.4701C10.9568 22.6401 11.4068 22.7201 11.8576 22.7001C12.3084 22.6801 12.7476 22.5601 13.1376 22.3501L13.6176 22.0901C14.0268 21.8701 14.4968 21.7801 14.9576 21.8301C15.4184 21.8801 15.8576 22.0501 16.2276 22.3201L16.6176 22.6001C17.0068 22.8801 17.4876 23.0201 17.9676 22.9901C18.4476 22.9601 18.9076 22.7601 19.2676 22.4201L19.6076 22.1001C19.9468 21.7801 20.3668 21.5801 20.8176 21.5201C21.2684 21.4601 21.7176 21.5601 22.0976 21.8001L22.4776 22.0401C22.8576 22.2801 23.1776 22.6201 23.3876 23.0101C23.5976 23.4001 23.6876 23.8501 23.6476 24.3001V24.3001" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <div class="config-content">
+                    <h3>全局快速配置</h3>
+                    <p>管理系统设置、权限、通知等配置项</p>
+                  </div>
+                  <div class="config-arrow">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                <button class="enter-config-btn" @click="goToConfig">
+                  进入配置页面
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- 右侧内容 -->
@@ -121,13 +172,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import ChinaMap from '@/components/map/Chinamap.vue'
 import { profileInfo, skillCategories, statsData } from '@/data/profile'
 import { activityAPI } from '@/lib/api'
+import * as echarts from 'echarts'
+import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
+const router = useRouter()
+const chartRef = ref<HTMLElement | null>(null)
+const chartPeriod = ref<'7' | '30'>('7')
+let chartInstance: echarts.ECharts | null = null
 
 // 当前用户个人资料
 const currentUserProfile = computed(() => {
@@ -206,8 +263,111 @@ const loadRecentActivities = async () => {
   }
 }
 
+// 模拟文章新增数据
+const generateMockData = (days: number) => {
+  const data = []
+  const now = new Date()
+  
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now)
+    date.setDate(date.getDate() - i)
+    const dateStr = date.toISOString().split('T')[0]
+    // 随机生成 0-10 篇文章
+    const count = Math.floor(Math.random() * 11)
+    data.push({ date: dateStr, count })
+  }
+  
+  return data
+}
+
+// 初始化图表
+const initChart = () => {
+  if (!chartRef.value) return
+  
+  if (!chartInstance) {
+    chartInstance = echarts.init(chartRef.value)
+  }
+  
+  const mockData = generateMockData(parseInt(chartPeriod.value))
+  const dates = mockData.map(item => item.date.slice(5)) // 只显示 MM-DD
+  const counts = mockData.map(item => item.count)
+  
+  const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#e0e0e0',
+      textStyle: { color: '#333' },
+      formatter: '{b}<br />新增文章：{c}篇'
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      axisLine: { lineStyle: { color: '#e0e0e0' } },
+      axisLabel: { color: '#666' }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1,
+      axisLine: { lineStyle: { color: '#e0e0e0' } },
+      axisLabel: { color: '#666' },
+      splitLine: { lineStyle: { color: '#f0f0f0' } }
+    },
+    series: [{
+      data: counts,
+      type: 'line',
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 8,
+      itemStyle: {
+        color: '#40e0d0',
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      lineStyle: {
+        color: '#40e0d0',
+        width: 3
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(64, 224, 208, 0.3)' },
+          { offset: 1, color: 'rgba(64, 224, 208, 0.05)' }
+        ])
+      }
+    }]
+  }
+  
+  chartInstance.setOption(option)
+}
+
+// 监听周期变化
+watch(chartPeriod, () => {
+  initChart()
+})
+
+// 跳转全局配置页面
+const goToConfig = () => {
+  router.push('/settings/global')
+}
+
 onMounted(() => {
   loadRecentActivities()
+  // 延迟初始化图表，确保 DOM 已渲染
+  setTimeout(() => {
+    initChart()
+  }, 100)
+  
+  // 窗口大小变化时重新渲染图表
+  window.addEventListener('resize', () => {
+    chartInstance?.resize()
+  })
 })
 
 // 获取姓名首字母
@@ -426,6 +586,167 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
   padding: 0.5rem 1.2rem;
   border-radius: 20px;
   font-size: 0.95rem;
+}
+
+/* 文章统计图表 */
+.chart-container {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.chart-tab {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: white;
+  color: #666;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.chart-tab:hover {
+  background: #e8f8f6;
+  color: #40e0d0;
+}
+
+.chart-tab.active {
+  background: #40e0d0;
+  color: white;
+}
+
+.echart-chart {
+  width: 100%;
+  height: 280px;
+}
+
+/* 全局快速配置 */
+.quick-config-section {
+  margin-top: 1.5rem;
+}
+
+.quick-config-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #40e0d0 0%, #20b2aa 100%);
+  border-radius: 10px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+  margin-bottom: 1rem;
+}
+
+.quick-config-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.45);
+}
+
+.config-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.config-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.config-content {
+  flex: 1;
+  color: white;
+}
+
+.config-content h3 {
+  margin: 0 0 0.3rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.config-content p {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.95;
+}
+
+.config-arrow {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: transform 0.3s ease;
+}
+
+.quick-config-card:hover .config-arrow {
+  transform: translateX(5px);
+}
+
+.config-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.enter-config-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.9rem 1.5rem;
+  background: white;
+  color: #40e0d0;
+  border: 2px solid #40e0d0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(64, 224, 208, 0.2);
+}
+
+.enter-config-btn:hover {
+  background: #40e0d0;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.35);
+}
+
+.enter-config-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.enter-config-btn:hover svg {
+  transform: translateX(5px);
 }
 
 /* 地图部分 */

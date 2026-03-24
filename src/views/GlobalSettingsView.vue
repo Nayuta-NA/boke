@@ -1,0 +1,999 @@
+<template>
+  <div class="global-settings">
+    <div class="page-header">
+      <div class="header-content">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <h1 class="page-title">全局配置</h1>
+      </div>
+    </div>
+
+    <div class="settings-content">
+      <!-- 全局配置 -->
+      <div class="settings-section">
+        <div class="section-header">
+          <svg
+            class="section-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <h2 class="section-title">全局配置</h2>
+        </div>
+
+        <div class="config-list-full">
+          <!-- 主题颜色 -->
+          <div class="config-card-full">
+            <div class="card-header">
+              <h3 class="card-title">主题颜色</h3>
+              <a-button @click="resetToDefault" class="reset-button">
+                <svg
+                  class="reset-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M3 3v5h5"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                恢复默认
+              </a-button>
+            </div>
+            <div class="card-body">
+              <p class="card-desc">修改网站主色调配置</p>
+
+              <div class="theme-color-editor">
+                <!-- 左侧：16 进制输入 -->
+                <div class="color-input-wrapper">
+                  <label class="input-label">色值（16 进制）</label>
+                  <a-input
+                    v-model:value="localHexColor"
+                    @change="handleHexColorChange"
+                    placeholder="40e0d0"
+                    class="hex-input"
+                  >
+                    <template #prefix>
+                      <span class="hash-symbol">#</span>
+                    </template>
+                  </a-input>
+                  <input
+                    m
+                    ref="colorInputRef"
+                    type="color"
+                    v-model="localPrimaryColor"
+                    @change="handleColorChange"
+                    class="color-picker-hidden"
+                  />
+                </div>
+
+                <!-- 右侧：色盘 -->
+                <div
+                  class="color-palette cursor-pointer"
+                  :style="{ backgroundColor: localPrimaryColor }"
+                  @click="triggerColorPicker"
+                >
+                  <span class="palette-text">{{ localPrimaryColor }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 网站头像 -->
+          <div class="config-card-full">
+            <div class="card-header">
+              <h3 class="card-title">网站头像</h3>
+            </div>
+            <div class="card-body">
+              <p class="card-desc">上传和管理网站头像图片</p>
+              <div class="avatar-display">
+                <div class="avatar-box">
+                  <img :src="avatarUrl" alt="Avatar" class="avatar-image" />
+                </div>
+              </div>
+              <div class="card-actions">
+                <a-button type="primary" class="config-button">配置</a-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 页面配置 - 左右布局 -->
+      <div class="settings-section page-config-section">
+        <div class="section-header">
+          <svg
+            class="section-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <h2 class="section-title">页面配置</h2>
+        </div>
+
+        <div class="page-layout">
+          <!-- 左侧：配置项列表 -->
+          <div class="config-list">
+            <div
+              v-for="config in pageConfigs"
+              :key="config.id"
+              class="list-item"
+              :class="{ active: selectedConfigId === config.id }"
+              @click="selectConfig(config.id)"
+            >
+              <div class="list-item-header">
+                <h3 class="list-item-title">{{ config.name }}</h3>
+                <a-switch
+                  v-model:checked="config.enabled"
+                  @change="handlePageConfigToggle(config.id, $event)"
+                  class="custom-switch small-switch"
+                />
+              </div>
+              <p class="list-item-desc">{{ config.description }}</p>
+
+              <!-- 子配置项 -->
+              <div v-if="config.subItems && config.subItems.length > 0" class="sub-items">
+                <div v-for="subItem in config.subItems" :key="subItem.id" class="sub-item">
+                  <span class="sub-item-name">{{ subItem.name }}</span>
+                  <div class="sub-item-status">
+                    <span class="status-tag" :class="subItem.enabled ? 'enabled' : 'disabled'">
+                      {{ subItem.enabled ? '展示' : '关闭' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：当前配置详情 -->
+          <div class="config-preview">
+            <div class="preview-header">
+              <h3 class="preview-title">
+                <svg
+                  class="preview-icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M9.005 16.545a2.997 2.997 0 012.997-2.997A2.997 2.997 0 0115 16.545V21h7V9.005a2.997 2.997 0 01-2.997-2.997A2.997 2.997 0 0116.545 9H21v7h-4.995a2.997 2.997 0 01-2.997 2.997 2.997 2.997 0 01-2.997-2.997V21h-7v-4.995z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                当前配置详情：{{ selectedConfig?.name }}
+              </h3>
+            </div>
+
+            <div class="preview-content">
+              <div class="preview-card">
+                <div class="preview-row">
+                  <span class="preview-label">页面名称：</span>
+                  <span class="preview-value">{{ selectedConfig?.name }}</span>
+                </div>
+
+                <div class="preview-row">
+                  <span class="preview-label">启用状态：</span>
+                  <span class="preview-value">
+                    <span
+                      class="status-badge"
+                      :class="selectedConfig?.enabled ? 'enabled' : 'disabled'"
+                    >
+                      {{ selectedConfig?.enabled ? '已启用' : '已禁用' }}
+                    </span>
+                  </span>
+                </div>
+
+                <div class="preview-row">
+                  <span class="preview-label">功能描述：</span>
+                  <span class="preview-value desc">{{ selectedConfig?.description }}</span>
+                </div>
+
+                <!-- 子配置项详情 -->
+                <div
+                  v-if="selectedConfig?.subItems && selectedConfig.subItems.length > 0"
+                  class="preview-subitems"
+                >
+                  <div class="preview-subtitle">子配置项详情</div>
+                  <div
+                    v-for="subItem in selectedConfig.subItems"
+                    :key="subItem.id"
+                    class="preview-subitem"
+                  >
+                    <div class="subitem-header">
+                      <span class="subitem-name">{{ subItem.name }}</span>
+                      <span class="status-tag" :class="subItem.enabled ? 'enabled' : 'disabled'">
+                        {{ subItem.enabled ? '展示' : '关闭' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="preview-actions">
+                  <a-button
+                    type="primary"
+                    class="config-button"
+                    :disabled="!selectedConfig?.enabled"
+                  >
+                    <svg
+                      class="button-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                    编辑配置
+                  </a-button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 返回按钮 -->
+      <div class="back-section">
+        <a-button @click="goBack" class="back-button">
+          <svg class="back-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M19 12H5M5 12L12 19M5 12L12 5"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          返回个人页面
+        </a-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { Input } from 'ant-design-vue'
+import { useGlobalSettingsStore } from '@/stores/globalSettings'
+
+const router = useRouter()
+const store = useGlobalSettingsStore()
+
+// 颜色选择器引用
+const colorInputRef = ref<HTMLInputElement | null>(null)
+
+// 从 store 获取数据
+const themeColor = computed(() => store.themeColor)
+const avatarUrl = computed(() => store.avatarUrl)
+const pageConfigs = computed(() => store.pageConfigs)
+const selectedConfig = computed(() => store.selectedConfig)
+
+// 本地状态用于双向绑定
+const selectedConfigId = ref(pageConfigs.value[0]?.id || '')
+
+// 主题颜色本地状态
+const localPrimaryColor = ref(themeColor.value.primary)
+const localHexColor = ref(themeColor.value.primary.replace('#', ''))
+
+// 监听 store 变化，同步本地状态
+watch(
+  () => themeColor.value.primary,
+  (newVal) => {
+    localPrimaryColor.value = newVal
+    localHexColor.value = newVal.replace('#', '')
+  },
+)
+
+// 初始化选中第一个配置
+onMounted(() => {
+  if (pageConfigs.value.length > 0) {
+    selectedConfigId.value = pageConfigs.value[0].id
+    store.selectConfig(pageConfigs.value[0].id)
+  }
+})
+
+// 触发颜色选择器
+const triggerColorPicker = () => {
+  if (colorInputRef.value) {
+    colorInputRef.value.click()
+  }
+}
+
+// 处理颜色变化
+const handleColorChange = () => {
+  localHexColor.value = localPrimaryColor.value.replace('#', '')
+  store.updateThemeColor({
+    primary: localPrimaryColor.value,
+  })
+}
+
+const handleHexColorChange = (value: string) => {
+  let hexValue = value.replace('#', '').trim()
+
+  // 验证 16 进制颜色格式
+  if (/^[0-9A-Fa-f]{6}$/.test(hexValue)) {
+    const formattedColor = '#' + hexValue.toUpperCase()
+    localPrimaryColor.value = formattedColor
+    store.updateThemeColor({
+      primary: formattedColor,
+    })
+  }
+}
+
+// 恢复默认颜色
+const resetToDefault = () => {
+  const defaultColor = '#40E0D0'
+  localPrimaryColor.value = defaultColor
+  localHexColor.value = '40E0D0'
+  store.updateThemeColor({
+    primary: defaultColor,
+  })
+}
+
+const handlePageConfigToggle = (configId: string, checked: boolean) => {
+  store.togglePageConfig(configId, checked)
+}
+
+// 选择配置项
+const selectConfig = (configId: string) => {
+  selectedConfigId.value = configId
+  store.selectConfig(configId)
+}
+
+const goBack = () => {
+  router.push('/profile')
+}
+</script>
+
+<style scoped>
+.global-settings {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 2rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  width: 36px;
+  height: 36px;
+  color: #40e0d0;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.settings-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.settings-section {
+  margin-bottom: 2.5rem;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #40e0d0;
+}
+
+.section-icon {
+  width: 28px;
+  height: 28px;
+  color: #40e0d0;
+}
+
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+/* 全局配置垂直列表 - 替换旧的 config-grid 样式 */
+.config-list-full {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.config-card-full {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+  width: 100%;
+}
+
+.config-card-full:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.15);
+  border-color: #40e0d0;
+}
+
+/* 移除旧的 config-grid 相关样式 */
+.config-grid {
+  display: none; /* 废弃旧的网格布局 */
+}
+
+/* 主题颜色编辑器 */
+.theme-color-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  align-items: start;
+}
+
+.color-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+}
+
+.input-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.hex-input {
+  width: 100%;
+}
+
+.hash-symbol {
+  color: #999;
+  font-weight: 600;
+}
+
+.color-picker-hidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.color-palette {
+  height: 120px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.color-palette::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 50%);
+  pointer-events: none;
+}
+
+.palette-text {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+/* 页面配置 - 左右布局 */
+.page-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  min-height: 500px;
+}
+
+.config-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.list-item {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.list-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.15);
+}
+
+.list-item.active {
+  border-color: #40e0d0;
+  background: white;
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.2);
+}
+
+.list-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.list-item-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.list-item-desc {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0 0 1rem 0;
+}
+
+/* 子配置项 */
+.sub-items {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.sub-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.sub-item-name {
+  font-size: 0.9rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.status-tag {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.status-tag.enabled {
+  background: linear-gradient(135deg, #40e0d0 0%, #20b2aa 100%);
+  color: white;
+}
+
+.status-tag.disabled {
+  background: #e9ecef;
+  color: #999;
+}
+
+.small-switch {
+  transform: scale(0.9);
+}
+
+/* 右侧预览区 */
+.config-preview {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 2px solid #40e0d0;
+}
+
+.preview-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #40e0d0;
+}
+
+.preview-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.preview-icon {
+  width: 24px;
+  height: 24px;
+  color: #40e0d0;
+}
+
+.preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.preview-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.preview-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.preview-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.preview-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #666;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.preview-value {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.preview-value.desc {
+  color: #666;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.status-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-badge.enabled {
+  background: linear-gradient(135deg, #40e0d0 0%, #20b2aa 100%);
+  color: white;
+}
+
+.status-badge.disabled {
+  background: #e9ecef;
+  color: #999;
+}
+
+/* 子配置项详情 */
+.preview-subitems {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e9ecef;
+}
+
+.preview-subtitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.preview-subitem {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.subitem-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subitem-name {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.preview-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e9ecef;
+  text-align: right;
+}
+
+.button-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* 保留原有的 config-card 样式用于页面配置部分 */
+.config-card,
+.page-card {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
+}
+
+.config-card:hover,
+.page-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.15);
+  border-color: #40e0d0;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card-desc {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.avatar-display {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.avatar-box {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.avatar-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.avatar-image:hover {
+  border-color: #40e0d0;
+  transform: scale(1.05);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.config-button {
+  background: linear-gradient(135deg, #40e0d0 0%, #20b2aa 100%);
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.5rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.config-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.4);
+}
+
+.config-button:disabled {
+  background: #d9d9d9;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.back-section {
+  text-align: center;
+  margin-top: 3rem;
+  padding-bottom: 2rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 2rem;
+  background: white;
+  color: #40e0d0;
+  border: 2px solid #40e0d0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: #40e0d0;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+}
+
+.back-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 恢复默认按钮样式 */
+.reset-button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  color: #666;
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.reset-button:hover {
+  color: #40e0d0;
+  border-color: #40e0d0;
+  background: rgba(64, 224, 208, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(64, 224, 208, 0.15);
+}
+
+.reset-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* 响应式布局 */
+@media (max-width: 1200px) {
+  .page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .config-preview {
+    order: -1;
+  }
+}
+
+@media (max-width: 1024px) {
+  .theme-color-editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .global-settings {
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+  }
+}
+</style>

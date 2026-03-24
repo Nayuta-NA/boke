@@ -21,7 +21,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 // 定义不需要布局的路由名称
-const noLayoutRoutes = ['login', 'register', 'wall']
+const noLayoutRoutes = ['login', 'register', 'wall', 'global-settings']
 
 // 计算是否应该显示布局组件
 const shouldShowLayout = computed(() => {

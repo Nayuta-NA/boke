@@ -16,6 +16,7 @@ import ProfileView from '../views/ProfileView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import Wall from '../views/Wall.vue'
+import GlobalSettingsView from '../views/GlobalSettingsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -105,7 +106,13 @@ const router = createRouter({
       path: '/wall',
       name: 'wall',
       component: Wall,
-      meta: { transition: 'slide', standalone: true } // 添加standalone属性以标识为独立页面
+      meta: { transition: 'slide', standalone: true } // 添加 standalone 属性以标识为独立页面
+    },
+    {
+      path: '/settings/global',
+      name: 'global-settings',
+      component: GlobalSettingsView,
+      meta: { transition: 'slide', standalone: true, requiresAuth: true }
     },
     {
       path: '/login',
