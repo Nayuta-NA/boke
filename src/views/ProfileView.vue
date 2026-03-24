@@ -186,6 +186,13 @@ const chartRef = ref<HTMLElement | null>(null)
 const chartPeriod = ref<'7' | '30'>('7')
 let chartInstance: echarts.ECharts | null = null
 
+// 获取主题色的计算属性（实时从 CSS 变量中读取）
+const primaryColor = computed(() => {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary-color')
+    .trim() || '#40e0d0'
+})
+
 // 当前用户个人资料
 const currentUserProfile = computed(() => {
   if (authStore.user) {
@@ -327,18 +334,18 @@ const initChart = () => {
       symbol: 'circle',
       symbolSize: 8,
       itemStyle: {
-        color: '#40e0d0',
+        color: primaryColor.value,
         borderColor: '#fff',
         borderWidth: 2
       },
       lineStyle: {
-        color: '#40e0d0',
+        color: primaryColor.value,
         width: 3
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(64, 224, 208, 0.3)' },
-          { offset: 1, color: 'rgba(64, 224, 208, 0.05)' }
+          { offset: 0, color: hexToRgba(primaryColor.value, 0.3) },
+          { offset: 1, color: hexToRgba(primaryColor.value, 0.05) }
         ])
       }
     }]
@@ -351,6 +358,14 @@ const initChart = () => {
 watch(chartPeriod, () => {
   initChart()
 })
+
+// 十六进制颜色转 RGBA
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 
 // 跳转全局配置页面
 const goToConfig = () => {
@@ -434,7 +449,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #40e0d0, #40c4d0);
+  background: linear-gradient(135deg, v-bind(primaryColor), v-bind(hexToRgba(primaryColor, 0.8)));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -468,7 +483,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 
 .profile-title {
   font-size: 1.2rem;
-  color: #40e0d0;
+  color: v-bind(primaryColor);
   margin: 0 0 1rem 0;
   font-weight: 500;
 }
@@ -502,13 +517,13 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 16px rgba(64, 224, 208, 0.2);
+  box-shadow: 0 6px 16px v-bind(hexToRgba(primaryColor, 0.2));
 }
 
 .stat-value {
   font-size: 2.2rem;
   font-weight: bold;
-  color: #40e0d0;
+  color: v-bind(primaryColor);
   margin-bottom: 0.5rem;
   line-height: 1;
 }
@@ -535,7 +550,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #40e0d0;
+  border-bottom: 2px solid v-bind(primaryColor);
   display: inline-block;
 }
 
@@ -554,7 +569,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 
 .category-title {
   font-size: 1.1rem;
-  color: #40e0d0;
+  color: v-bind(primaryColor);
   margin: 0 0 1rem 0;
 }
 
@@ -581,7 +596,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 }
 
 .hobby-tag {
-  background: #40e0d0;
+  background: v-bind(primaryColor);
   color: white;
   padding: 0.5rem 1.2rem;
   border-radius: 20px;
@@ -621,12 +636,12 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 }
 
 .chart-tab:hover {
-  background: #e8f8f6;
-  color: #40e0d0;
+  background: v-bind(hexToRgba(primaryColor, 0.1));
+  color: v-bind(primaryColor);
 }
 
 .chart-tab.active {
-  background: #40e0d0;
+  background: v-bind(primaryColor);
   color: white;
 }
 
@@ -644,18 +659,18 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
   display: flex;
   align-items: center;
   gap: 1rem;
-  background: linear-gradient(135deg, #40e0d0 0%, #20b2aa 100%);
+  background: linear-gradient(135deg, v-bind(primaryColor) 0%, v-bind(hexToRgba(primaryColor, 0.8)) 100%);
   border-radius: 10px;
   padding: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+  box-shadow: 0 4px 12px v-bind(hexToRgba(primaryColor, 0.3));
   margin-bottom: 1rem;
 }
 
 .quick-config-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(64, 224, 208, 0.45);
+  box-shadow: 0 6px 20px v-bind(hexToRgba(primaryColor, 0.45));
 }
 
 .config-icon {
@@ -722,21 +737,21 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
   width: 100%;
   padding: 0.9rem 1.5rem;
   background: white;
-  color: #40e0d0;
-  border: 2px solid #40e0d0;
+  color: v-bind(primaryColor);
+  border: 2px solid v-bind(primaryColor);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(64, 224, 208, 0.2);
+  box-shadow: 0 2px 8px v-bind(hexToRgba(primaryColor, 0.2));
 }
 
 .enter-config-btn:hover {
-  background: #40e0d0;
+  background: v-bind(primaryColor);
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.35);
+  box-shadow: 0 4px 12px v-bind(hexToRgba(primaryColor, 0.35));
 }
 
 .enter-config-btn svg {
@@ -765,7 +780,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 }
 
 .highlight {
-  color: #40e0d0;
+  color: v-bind(primaryColor);
   font-weight: bold;
 }
 
@@ -801,7 +816,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 }
 
 .article-type {
-  background: #40e0d0;
+  background: v-bind(primaryColor);
 }
 
 .travel-type {
@@ -869,7 +884,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 .login-link {
   display: inline-block;
   padding: 0.8rem 2rem;
-  background: #40e0d0;
+  background: v-bind(primaryColor);
   color: white;
   text-decoration: none;
   border-radius: 6px;
@@ -878,7 +893,7 @@ const visitedCities = ref(['北京', '上海', '西安', '成都', '广州', '�
 }
 
 .login-link:hover {
-  background: #35c9b9;
+  background: v-bind(hexToRgba(primaryColor, 0.85));
 }
 
 /* 响应式设计 */

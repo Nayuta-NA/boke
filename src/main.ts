@@ -4,7 +4,7 @@ import 'uno.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-// 导入Ant Design Vue及其样式
+// 导入 Ant Design Vue 及其样式
 import Antd from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 
@@ -17,7 +17,7 @@ const app = createApp(App)
 // 使用 Ant Design Vue
 app.use(Antd)
 
-// 使用 Pinia 和 Router（将 Pinia 实例创建直接放在 use 中）
+// 使用 Pinia 和 Router
 app.use(createPinia())
 app.use(router)
 

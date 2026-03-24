@@ -66,8 +66,14 @@
         <a-card :bordered="false" class="section-card">
           <template #title>
             <div class="content-header">
-              <span>{{ searchText ? '搜索结果' : selectedDate.format('YYYY年MM月DD日') + ' 的随记' }}</span>
-              <a-tag :color="searchText ? 'green' : (entriesForSelectedDate.length > 0 ? 'blue' : 'orange')">
+              <span>{{
+                searchText ? '搜索结果' : selectedDate.format('YYYY年MM月DD日') + ' 的随记'
+              }}</span>
+              <a-tag
+                :color="
+                  searchText ? 'green' : entriesForSelectedDate.length > 0 ? 'blue' : 'orange'
+                "
+              >
                 {{ searchText ? searchResults.length : entriesForSelectedDate.length }} 条记录
               </a-tag>
             </div>
@@ -83,7 +89,13 @@
                 <a-list-item class="diary-item">
                   <div class="diary-link" @click="viewDetail(item)">
                     <div class="diary-main">
-                      <h3 class="diary-title">{{ item.content.length > 30 ? item.content.substring(0, 30) + '...' : item.content }}</h3>
+                      <h3 class="diary-title">
+                        {{
+                          item.content.length > 30
+                            ? item.content.substring(0, 30) + '...'
+                            : item.content
+                        }}
+                      </h3>
                       <div class="diary-meta">
                         <div class="meta-info">
                           <span class="diary-time">
@@ -102,7 +114,12 @@
                       <!-- 只显示摘要内容 -->
                       <div class="diary-content">{{ getSummary(item.content) }}</div>
                       <div class="diary-tags" v-if="item.tags && item.tags.length">
-                        <a-tag v-for="tag in item.tags" :key="tag" color="default" class="content-tag">
+                        <a-tag
+                          v-for="tag in item.tags"
+                          :key="tag"
+                          color="default"
+                          class="content-tag"
+                        >
                           {{ tag }}
                         </a-tag>
                       </div>
@@ -111,14 +128,15 @@
                 </a-list-item>
               </template>
               <template #empty>
-                <a-empty :description="searchText ? '没有找到匹配的随记内容' : '当天暂无随记内容'" />
+                <a-empty
+                  :description="searchText ? '没有找到匹配的随记内容' : '当天暂无随记内容'"
+                />
               </template>
             </a-list>
           </div>
         </a-card>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -153,15 +171,15 @@ const { notes } = storeToRefs(notesStore)
 // 将notes数组转换为Note类型
 const diaryEntries = computed(() => {
   // 确保数据已存在且有值
-  return notes.value.map(note => ({
+  return notes.value.map((note) => ({
     id: note.id,
     date: note.date,
     time: note.time || '00:00',
     content: note.content || note.desc || '',
     mood: note.mood,
     tags: note.tags || [],
-    weather: note.weather
-  }));
+    weather: note.weather,
+  }))
 })
 
 // 分页配置
@@ -176,21 +194,24 @@ const searchResults = computed(() => {
   if (!searchText.value.trim()) {
     return []
   }
-  
+
   const searchLower = searchText.value.trim().toLowerCase()
-  return diaryEntries.value.filter((entry: Note) => 
-    entry.content.toLowerCase().includes(searchLower) ||
-    (entry.mood && entry.mood.toLowerCase().includes(searchLower)) ||
-    (entry.tags && entry.tags.some((tag: string) => tag.toLowerCase().includes(searchLower))) ||
-    (entry.weather && entry.weather.toLowerCase().includes(searchLower)) ||
-    entry.date.includes(searchLower)
-  ).sort((a: Note, b: Note) => {
-    // 按日期时间倒序排列
-    if (a.date !== b.date) {
-      return b.date.localeCompare(a.date)
-    }
-    return (b.time || '').localeCompare(a.time || '')
-  })
+  return diaryEntries.value
+    .filter(
+      (entry: Note) =>
+        entry.content.toLowerCase().includes(searchLower) ||
+        (entry.mood && entry.mood.toLowerCase().includes(searchLower)) ||
+        (entry.tags && entry.tags.some((tag: string) => tag.toLowerCase().includes(searchLower))) ||
+        (entry.weather && entry.weather.toLowerCase().includes(searchLower)) ||
+        entry.date.includes(searchLower),
+    )
+    .sort((a: Note, b: Note) => {
+      // 按日期时间倒序排列
+      if (a.date !== b.date) {
+        return b.date.localeCompare(a.date)
+      }
+      return (b.time || '').localeCompare(a.time || '')
+    })
 })
 
 // 计算属性
@@ -212,6 +233,22 @@ const years = computed(() => {
   const currentYear = dayjs().year()
   return Array.from({ length: 5 }, (_, i) => currentYear - 2 + i)
 })
+
+// 获取主题色的计算属性（实时从 CSS 变量中读取）
+const primaryColor = computed(() => {
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() ||
+    '#40e0d0'
+  )
+})
+
+// 十六进制颜色转 RGBA
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
 
 // 方法
 const onSelectDate = (date: Dayjs) => {
@@ -270,7 +307,9 @@ const getWeatherClass = (weather?: string) => {
     大雨: 'weather-stormy',
     雪天: 'weather-snowy',
   }
-  return weather ? `weather-info ${weatherClasses[weather] || 'weather-other'}` : 'weather-info weather-other'
+  return weather
+    ? `weather-info ${weatherClasses[weather] || 'weather-other'}`
+    : 'weather-info weather-other'
 }
 
 // 判断某天是否有随记
@@ -299,8 +338,8 @@ const viewDetail = (entry: Note) => {
 
 onMounted(async () => {
   // 从后端加载数据到store
-  await notesStore.fetchNotes();
-  console.log('随记数据已从后端加载到store');
+  await notesStore.fetchNotes()
+  console.log('随记数据已从后端加载到store')
   // 触发loaded事件
   const event = new Event('loaded')
   window.dispatchEvent(event)
@@ -388,7 +427,7 @@ onMounted(async () => {
   transform: translateX(-50%);
   width: 4px;
   height: 4px;
-  background-color: #40e0d0;
+  background-color: v-bind(primaryColor);
   border-radius: 50%;
 }
 
@@ -407,7 +446,7 @@ onMounted(async () => {
 .stat-value {
   font-size: 24px;
   font-weight: 600;
-  color: #40e0d0;
+  color: v-bind(primaryColor);
 }
 
 .stat-label {
@@ -554,9 +593,9 @@ onMounted(async () => {
   font-size: 12px;
   padding: 4px 12px;
   border-radius: 20px;
-  background: #f0fafa;
-  border: 1px solid #40e0d0 !important;
-  color: #40e0d0 !important;
+  background: v-bind(hexToRgba(primaryColor, 0.1));
+  border: 1px solid v-bind(primaryColor) !important;
+  color: v-bind(primaryColor) !important;
 }
 
 .action-btn {
@@ -566,7 +605,7 @@ onMounted(async () => {
 }
 
 .action-btn:hover {
-  color: #40e0d0 !important;
+  color: v-bind(primaryColor) !important;
 }
 
 .diary-modal :deep(.ant-modal-content) {
@@ -581,7 +620,7 @@ onMounted(async () => {
 }
 
 .diary-modal :deep(.ant-modal-title) {
-  color: #40e0d0;
+  color: v-bind(primaryColor);
   font-size: 22px;
   font-weight: 600;
 }
@@ -598,54 +637,54 @@ onMounted(async () => {
 
 .mood-selector :deep(.ant-select-selection-item),
 .weather-selector :deep(.ant-select-selection-item) {
-  color: #40e0d0;
+  color: v-bind(primaryColor);
 }
 
 .tag-selector :deep(.ant-select-selection-item) {
-  background-color: #f0fafa;
-  border-color: #40e0d0 !important;
-  color: #40e0d0;
+  background-color: v-bind(hexToRgba(primaryColor, 0.1));
+  border-color: v-bind(primaryColor) !important;
+  color: v-bind(primaryColor);
 }
 
 .content-textarea :deep(.ant-input) {
-  border-color: #d9f0ee;
+  border-color: v-bind(hexToRgba(primaryColor, 0.3));
   border-radius: 12px;
   min-height: 180px;
   font-size: 16px;
 }
 
 .content-textarea :deep(.ant-input:focus) {
-  border-color: #40e0d0;
-  box-shadow: 0 0 0 2px rgba(64, 224, 208, 0.2);
+  border-color: v-bind(primaryColor);
+  box-shadow: 0 0 0 2px v-bind(hexToRgba(primaryColor, 0.2));
 }
 
 @media (max-width: 992px) {
   .notes-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .notes-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
     padding: 20px;
   }
-  
+
   .header-actions {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .diary-link {
     padding: 0 20px;
   }
-  
+
   .diary-meta {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .meta-info {
     width: 100%;
     justify-content: space-between;
@@ -656,19 +695,19 @@ onMounted(async () => {
   .notes-view {
     padding: 16px;
   }
-  
+
   .notes-header {
     padding: 16px;
   }
-  
+
   .page-title {
     font-size: 24px;
   }
-  
+
   .diary-title {
     font-size: 20px;
   }
-  
+
   .diary-content {
     font-size: 15px;
   }

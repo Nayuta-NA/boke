@@ -2,9 +2,13 @@
 
 :root {
   --primary-color: #40e0d0;
+  --primary-color-hover: #35c9b9;
   --secondary-color: #ff9a8b;
   --text-color: #333;
   --bg-color: #f9f9f9;
+  --ant-primary-color: var(--primary-color);
+  --ant-primary-color-hover: var(--primary-color-hover);
+  --ant-primary-shadow: rgba(64, 224, 208, 0.2);
 }
 
 body {
@@ -87,8 +91,8 @@ body {
 
 .ant-btn-primary:hover,
 .ant-btn-primary:focus {
-  background: #35c9b9 !important; /* 稍微深一点的色调 */
-  border-color: #35c9b9 !important;
+  background: var(--primary-color-hover) !important;
+  border-color: var(--primary-color-hover) !important;
 }
 
 .ant-input-affix-wrapper:focus,
@@ -126,5 +130,5 @@ a {
 }
 
 a:hover {
-  color: #35c9b9;
+  color: var(--primary-color-hover);
 }

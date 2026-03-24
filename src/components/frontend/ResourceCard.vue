@@ -50,7 +50,7 @@ defineProps<{
 .icon-placeholder {
   width: 48px;
   height: 48px;
-  background: #40e0d0;
+  background: var(--primary-color);
   border-radius: 12px;
   display: flex;
   align-items: center;

@@ -45,10 +45,24 @@ import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { DownOutlined } from '@ant-design/icons-vue'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
+import { useGlobalSettingsStore } from '@/stores/globalSettings'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const globalSettingsStore = useGlobalSettingsStore()
+
+// 从 store 获取导航栏配置
+const navbarConfig = computed(() => globalSettingsStore.navbarConfig)
+
+// 监听导航栏颜色变化，更新 CSS 变量
+watch(
+  () => navbarConfig.value.backgroundColor,
+  (newColor) => {
+    document.documentElement.style.setProperty('--navbar-background-color', newColor)
+  },
+  { immediate: true }
+)
 
 // 控制导航栏显示/隐藏的状态
 const isHidden = ref(false)
@@ -87,7 +101,6 @@ const handleLogout = () => {
 
 <style scoped>
 .header {
-  background-color: #ffffff;
   padding: 0 1rem;
   position: fixed;
   top: 0;
@@ -98,7 +111,7 @@ const handleLogout = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   height: 64px;
   transition: transform 0.3s ease-in-out;
-  background-color: #f5f5f0;
+  background-color: var(--navbar-background-color, #ffffff);
 }
 
 .header.hidden {
@@ -139,7 +152,7 @@ const handleLogout = () => {
 .jianghu {
   font-size: 24px;
   font-weight: bold;
-  color: #40e0d0;
+  color: var(--primary-color);
   text-decoration: none;
 }
 
@@ -164,7 +177,7 @@ const handleLogout = () => {
 }
 
 .navigation .router-link-active {
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
   opacity: 1;
   padding: 0.25rem 0.8rem;

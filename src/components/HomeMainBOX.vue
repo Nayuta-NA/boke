@@ -16,7 +16,7 @@
     <div class="bottom">
       <InteractiveHoverButton
         text="更多"
-        class="bg-[#40e0d0] text-white hover:bg-[#34c7ba]"
+        class="bg-primary hover:bg-primary-hover text-white"
         @click="goToMore"
         :loading="loading"
         :disabled="loading"
@@ -143,19 +143,19 @@ import TextGenerateEffect from './TextGenerateEffect.vue'
   position: relative;
 }
 
-/* 按钮样式（若InteractiveHoverButton内部用.btn类） */
+/* 按钮样式（若 InteractiveHoverButton 内部用.btn 类） */
 .btn {
   width: 100px;
   height: 43px;
-  color: #40e0d0;
+  color: var(--primary-color);
   background-color: white;
   border-radius: 8%;
-  border: 1px solid #40e0d0;
+  border: 1px solid var(--primary-color);
   cursor: pointer;
   transition: all 0.3s;
 }
 .btn:hover {
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
 }
 
@@ -188,7 +188,7 @@ import TextGenerateEffect from './TextGenerateEffect.vue'
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #40e0d0;
+  border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 15px;
@@ -205,7 +205,7 @@ import TextGenerateEffect from './TextGenerateEffect.vue'
 
 .loading-text {
   font-size: 16px;
-  color: #40e0d0;
+  color: var(--primary-color);
   font-weight: 500;
 }
 </style>

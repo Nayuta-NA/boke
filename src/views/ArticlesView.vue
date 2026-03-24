@@ -384,7 +384,7 @@ onMounted(async () => {
 }
 
 .tab-button.active {
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
   box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
 }
@@ -399,7 +399,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 25px;
@@ -410,8 +410,8 @@ onMounted(async () => {
 }
 
 .create-article-btn:hover {
-  background-color: #34c7ba;
-  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.4);
+  background-color: var(--primary-color-hover);
+  box-shadow: 0 4px 12px var(--ant-primary-shadow);
   transform: translateY(-2px);
 }
 
@@ -429,7 +429,7 @@ onMounted(async () => {
   width: 50px;
   height: 50px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #40e0d0;
+  border-top: 4px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 1rem;
@@ -478,10 +478,10 @@ onMounted(async () => {
 }
 
 .load-more-btn:hover {
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
-  border-color: #40e0d0;
-  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px var(--ant-primary-shadow);
 }
 
 /* 响应式设计 */
@@ -627,12 +627,18 @@ onMounted(async () => {
   font-family: inherit;
 }
 
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+  border-color: var(--primary-color);
+}
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #40e0d0;
-  box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--ant-primary-shadow);
 }
 
 .form-textarea {
@@ -669,13 +675,13 @@ onMounted(async () => {
 }
 
 .btn-confirm {
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
 }
 
 .btn-confirm:hover {
-  background-color: #34c7ba;
-  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
+  background-color: var(--primary-color-hover);
+  box-shadow: 0 4px 12px var(--ant-primary-shadow);
 }
 
 .btn-confirm:disabled {

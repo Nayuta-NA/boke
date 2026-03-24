@@ -10,7 +10,8 @@ export default defineConfig({
   },
   theme: {
     colors: {
-      primary: '#40e0d0',
+      primary: 'var(--primary-color)',
+      'primary-hover': 'var(--primary-color-hover)',
       secondary: '#ff9a8b',
     }
   }

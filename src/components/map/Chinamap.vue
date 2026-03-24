@@ -5,12 +5,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
 import chinaJson from '@/components/map/chinaMap.json'
 
-const router = useRouter() 
+const router = useRouter()
+
+// 获取主题色
+const primaryColor = computed(() => {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary-color')
+    .trim() || '#40e0d0'
+})
 
 // 定义组件属性
 const props = defineProps({
@@ -131,7 +138,7 @@ const updateMap = () => {
       min: 0,
       max: 1,
       inRange: {
-        color: ['#e0e0e0', '#40e0d0'],
+        color: ['#e0e0e0', primaryColor.value],
       },
       show: false, // 隐藏视觉映射图例
     },
@@ -165,7 +172,7 @@ const updateMap = () => {
         data: provinceData.map((province) => ({
           name: province.name,
           value: province.visited ? 1 : 0,
-          displayName: province.displayName // 添加displayName用于跳转
+          displayName: province.displayName // 添加 displayName 用于跳转
         })),
       },
       // 城市标记系列
@@ -184,9 +191,9 @@ const updateMap = () => {
           show: false,
         },
         itemStyle: {
-          color: '#40e0d0',
+          color: primaryColor.value,
           shadowBlur: 10,
-          shadowColor: '#40e0d0',
+          shadowColor: primaryColor.value,
         },
         emphasis: {
           label: { show: true },

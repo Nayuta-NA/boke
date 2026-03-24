@@ -80,10 +80,17 @@ const goToWall = () => {
 button {
   margin-top: 20px;
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   cursor: pointer;
   border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: var(--primary-color-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 224, 208, 0.3);
 }
 </style>

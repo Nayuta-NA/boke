@@ -191,12 +191,30 @@ const targetCityConfig = ref({
   latitude: 30.6595,
 })
 const highlightedProvinces = ref(['西藏', '浙江', '云南', '江苏', '四川', '重庆'])
+
+// 获取主题色的计算属性（实时从 CSS 变量中读取）
+const primaryColor = computed(() => {
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() ||
+    '#40e0d0'
+  )
+})
+
 const styleConfig = ref({
-  mainColor: '#40e0d0',
+  mainColor: primaryColor.value,
   avatarSize: 60,
   arrowWidth: 2,
   targetMarkerSize: 10,
 })
+
+// 监听主题色变化，自动更新 styleConfig.mainColor
+watch(
+  primaryColor,
+  (newColor) => {
+    styleConfig.value.mainColor = newColor
+  },
+  { immediate: true },
+)
 
 // 所有省份列表
 const allProvinces = Object.keys(provinceToCapital.value)
@@ -669,14 +687,7 @@ const goToProvinceDetail = (province) => {
 
 // 监听配置变化，自动更新地图
 watch(
-  [
-    currentCityConfig,
-    targetCityConfig,
-    highlightedProvinces,
-    avatarUrl,
-    styleConfig,
-    provinceToCapital,
-  ],
+  [currentCityConfig, targetCityConfig, highlightedProvinces, avatarUrl, provinceToCapital],
   updateMap,
   { deep: true },
 )
@@ -702,21 +713,24 @@ onBeforeUnmount(() => {
 
 .china-map-container {
   background: white;
+  height: 80vh;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   margin-bottom: 30px;
+  overflow: hidden;
 }
 
 .map-container {
   width: 100%;
-  height: 500px;
+  height: 100%;
 }
 
 .province-gallery-section {
   background: white;
   border-radius: 12px;
   padding: 24px;
+  z-index: 1001;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
@@ -741,7 +755,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #40e0d0;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 6px;

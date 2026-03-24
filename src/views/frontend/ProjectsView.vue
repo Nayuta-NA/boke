@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { ArrowLeftOutlined } from '@ant-design/icons-vue'
@@ -122,6 +122,21 @@ interface Project {
   tags: string[]
   demo?: string
   github?: string
+}
+
+// 获取主题色的计算属性（实时从 CSS 变量中读取）
+const primaryColor = computed(() => {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary-color')
+    .trim() || '#40e0d0'
+})
+
+// 十六进制颜色转 RGBA
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
 const router = useRouter()
@@ -289,7 +304,7 @@ const openGithub = (url: string) => {
 }
 
 .framework-tag {
-  background: rgba(64, 224, 208, 0.9);
+  background: v-bind(hexToRgba(primaryColor, 0.9));
   color: white;
   padding: 4px 12px;
   border-radius: 20px;
@@ -323,9 +338,9 @@ const openGithub = (url: string) => {
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 16px;
-  background: #f0fafa;
-  border: 1px solid #40e0d0 !important;
-  color: #40e0d0 !important;
+  background: v-bind(hexToRgba(primaryColor, 0.1));
+  border: 1px solid v-bind(primaryColor) !important;
+  color: v-bind(primaryColor) !important;
   margin-right: 8px;
   margin-bottom: 8px;
 }
@@ -343,8 +358,8 @@ const openGithub = (url: string) => {
 }
 
 .demo-button {
-  background-color: #40e0d0 !important;
-  border-color: #40e0d0 !important;
+  background-color: v-bind(primaryColor) !important;
+  border-color: v-bind(primaryColor) !important;
 }
 
 .github-button {
@@ -385,9 +400,9 @@ const openGithub = (url: string) => {
   font-size: 12px;
   padding: 6px 14px;
   border-radius: 20px;
-  background: #f0fafa;
-  border: 1px solid #40e0d0 !important;
-  color: #40e0d0 !important;
+  background: v-bind(hexToRgba(primaryColor, 0.1));
+  border: 1px solid v-bind(primaryColor) !important;
+  color: v-bind(primaryColor) !important;
   margin-right: 10px;
   margin-bottom: 10px;
 }

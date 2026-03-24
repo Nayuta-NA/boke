@@ -149,7 +149,7 @@ onUnmounted(() => {
   z-index: -10;
   overflow: hidden;
   -webkit-mask-image: radial-gradient(circle at 50% 0%, black 60%, transparent 60%);
-  background: linear-gradient(to bottom, #40e0d0, transparent);
+  background: linear-gradient(to bottom, var(--primary-color), transparent);
 }
 
 .testimonial-image-enter-active {

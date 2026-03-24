@@ -3,12 +3,15 @@
     class="flex flex-col rounded-lg bg-white dark:bg-gray-800 p-4 shadow-md transition-all duration-300 hover:shadow-lg mx-4 w-[320px] sm:w-[350px] md:w-[400px]"
   >
     <div class="flex items-center gap-3 mb-2">
-      <img
-        src="https://avatar.vercel.sh/jack"
-        :alt="`${name}'s avatar`"
-        class="h-12 w-12 rounded-full object-cover"
-        loading="lazy"
-      />
+      <!-- 使用 CSS 渐变背景替代头像图片 -->
+      <div
+        class="h-12 w-12 rounded-full object-cover flex items-center justify-center text-white font-semibold text-lg"
+        :style="{
+          background: `linear-gradient(135deg, #ffffff 0%, var(--primary-color) 100%)`,
+        }"
+      >
+        {{ name.charAt(0).toUpperCase() }}
+      </div>
       <div class="flex flex-col">
         <h3 class="font-semibold text-gray-900 dark:text-white text-base">{{ name }}</h3>
         <span class="text-gray-500 dark:text-gray-400 text-sm"> {{ formatDate(createdAt) }}</span>

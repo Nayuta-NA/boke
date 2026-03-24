@@ -77,6 +77,21 @@ interface NavigationItem {
   path: string
 }
 
+// 获取主题色的计算属性（实时从 CSS 变量中读取）
+const primaryColor = computed(() => {
+  return getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary-color')
+    .trim() || '#40e0d0'
+})
+
+// 十六进制颜色转 RGBA
+const hexToRgba = (hex: string, alpha: number) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
 // 技能分类
 const skillCategories: SkillCategory[] = [
   {
@@ -283,8 +298,8 @@ onMounted(() => {
 }
 
 .projects-icon {
-  color: #40e0d0;
-  background: rgba(64, 224, 208, 0.1);
+  color: v-bind(primaryColor);
+  background: v-bind(hexToRgba(primaryColor, 0.1));
 }
 
 .games-icon {

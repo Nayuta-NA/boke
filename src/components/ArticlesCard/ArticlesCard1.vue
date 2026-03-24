@@ -83,7 +83,7 @@ const onImageError = (event: Event) => {
 
 .article-card-wrapper:hover .modern-card {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: #40e0d0;
+  border-color: var(--primary-color);
 }
 
 /* 图片区域 */
@@ -117,7 +117,7 @@ const onImageError = (event: Event) => {
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
-  color: #40e0d0;
+  color: var(--primary-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -146,7 +146,7 @@ const onImageError = (event: Event) => {
 }
 
 .article-card-wrapper:hover .article-title {
-  color: #40e0d0;
+  color: var(--primary-color);
 }
 
 /* 摘要 */
@@ -199,7 +199,7 @@ const onImageError = (event: Event) => {
 }
 
 .article-card-wrapper:hover .read-time {
-  background: #40e0d0;
+  background: var(--primary-color);
   color: white;
 }
 
