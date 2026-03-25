@@ -5,7 +5,6 @@ import HomeView from '../views/HomeView.vue'
 import ArticlesView from '../views/ArticlesView.vue'
 import TravelView from '../views/TravelView.vue'
 import NotesView from '../views/NotesView.vue'
-import NotesDetailView from '../views/NotesDetailView.vue'
 import FrontendView from '../views/FrontendView.vue'
 import ProvinceDetailView from '../views/ProvinceDetailView.vue'
 import ProjectsView from '../views/frontend/ProjectsView.vue'
@@ -63,7 +62,7 @@ const router = createRouter({
     {
       path: '/notes/:id',
       name: 'notes-detail',
-      component: NotesDetailView,
+      component: NotesView,
       props: true,
       meta: { transition: 'slide', requiresAuth: true }
     },

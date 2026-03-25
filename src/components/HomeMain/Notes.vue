@@ -5,17 +5,18 @@
       title="日常随记"
       introduce="记录生活中的点滴思考和灵感瞬间"
       bg="white"
-      height="750px"
+      height="780px"
       :more-path="morePath"
     >
       <template v-slot:main>
-        <section class="py-8 bg-white">
+        <section class="py-16 bg-white">
           <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div
+              <router-link
                 v-for="note in displayedNotes"
                 :key="note.id"
-                class="bg-gray-50 rounded-xl p-6 hover:shadow-sm transition-shadow duration-300 border border-gray-100"
+                :to="`/notes/${note.id}`"
+                class="bg-gray-50 rounded-xl p-6 hover:shadow-sm transition-shadow duration-300 border border-gray-100 block cursor-pointer"
               >
                 <div class="flex items-start mb-4">
                   <!-- 头像 -->
@@ -31,16 +32,15 @@
                   </div>
                 </div>
                 <!-- 内容摘要 -->
-                <p class="text-gray-600 mb-4 line-clamp-3">{{ note.desc }}</p>
+                <p class="text-gray-600 line-clamp-2">{{ note.desc }}</p>
                 <!-- 阅读更多 -->
-                <router-link
-                  :to="`/notes/${note.id}`"
+                <span
                   class="inline-flex items-center text-primary text-sm font-medium hover:text-primary/80 transition-colors duration-200"
                 >
                   阅读更多
                   <i class="fas fa-long-arrow-alt-right ml-1"></i>
-                </router-link>
-              </div>
+                </span>
+              </router-link>
             </div>
           </div>
         </section>
@@ -53,33 +53,24 @@
 import HomeMainBOX from '@/components/HomeMainBOX.vue'
 import { useRouter } from 'vue-router'
 import { useNotesStore } from '@/stores/notes'
-import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { onMounted, watch } from 'vue'
+import { onMounted, computed } from 'vue'
 
 const router = useRouter()
 const notesStore = useNotesStore()
-const authStore = useAuthStore()
 const { notes } = storeToRefs(notesStore)
 
 // 在组件挂载时获取数据
 onMounted(async () => {
-  await notesStore.fetchNotes()
+  if (notes.value.length === 0) {
+    await notesStore.fetchNotes()
+  }
 })
 
-// 监听登录状态变化，确保登录后重新获取数据
-watch(
-  () => authStore.isAuthenticated,
-  async (newVal) => {
-    if (newVal) {
-      await notesStore.fetchNotes()
-    }
-  },
-  { immediate: true },
-)
-
-// 使用统一数据的前 4 条记录
-const displayedNotes = notes.value.slice(0, 4)
+// 使用计算属性确保数据响应式更新
+const displayedNotes = computed(() => {
+  return notes.value.slice(0, 4)
+})
 
 const morePath = '/notes'
 </script>

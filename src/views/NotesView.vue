@@ -1434,7 +1434,7 @@ onMounted(async () => {
 .detail-content {
   line-height: 2.2;
   color: #333;
-  font-size: 24px; /* 增大字体 */
+  font-size: 21px; /* 增大字体 */
   /* 使用更随意的手写体风格字体 */
   font-family: 'Xingkai SC', 'STXingkai', 'Marker Felt', 'KaiTi', 'Comic Sans MS', cursive;
   /* 滚动区域 */
