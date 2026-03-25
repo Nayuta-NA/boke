@@ -8,14 +8,15 @@
       :more-path="morePath"
     >
       <template v-slot:main>
-        <!-- 新增py-16：给文章列表添加垂直内边距，让内容更饱满 -->
-        <div class="bg-gray-50 py-16">
+        <!-- 新增 py-16：给文章列表添加垂直内边距，让内容更饱满 -->
+        <div class="py-16" style="background-color: var(--navbar-color)">
           <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div
                 v-for="article in articles"
                 :key="article.id"
-                class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group cursor-pointer"
+                class="rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 group cursor-pointer"
+                style="background-color: var(--app-background)"
                 @click="goToArticleDetail(article.id)"
               >
                 <div class="relative h-48 overflow-hidden">

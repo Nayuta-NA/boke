@@ -2,8 +2,8 @@
   <ClientOnly>
     <CardContainer>
       <CardBody
-        class="group/card relative size-auto rounded-xl border border-black/[0.1] bg-gray-50 p-6 sm:w-[30rem] dark:border-white/[0.2] dark:bg-black dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1]"
-        style="padding: 5%"
+        class="group/card relative size-auto rounded-xl border border-black/[0.1] p-6 sm:w-[30rem] dark:border-white/[0.2] dark:bg-black dark:hover:shadow-2xl dark:hover:shadow-emerald-500/[0.1]"
+        :style="{ padding: '5%', backgroundColor: 'var(--navbar-color)' }"
       >
         <CardItem :translate-z="50" class="text-xl font-bold text-neutral-600 dark:text-white">
           <div class="font-bold" style="font-size: 24px">Welcome to:</div>
@@ -31,11 +31,15 @@
           </CardItem>
         </div>
         <div class="mt-5 flex items-center">
-          <CardItem as="p" class="items-center justify-center text-20px"> {{ welcomeText }}: </CardItem>
+          <CardItem as="p" class="items-center justify-center text-20px">
+            {{ welcomeText }}:
+          </CardItem>
         </div>
         <div class="mt-5 flex items-center" style="float: right">
           <CardItem as="p" class="items-center justify-center text-25px flex flex-col">
-            <div class="mt-2 english" v-for="(interest, index) in userInterests" :key="index">{{ interest }}</div>
+            <div class="mt-2 english" v-for="(interest, index) in userInterests" :key="index">
+              {{ interest }}
+            </div>
           </CardItem>
         </div>
         <div class="flex items-center justify-between" style="margin-top: 55%">
@@ -68,7 +72,7 @@ const userInterests = ref([
   'Elementary Web Code',
   'Travel enthusiast',
   'Writing enthusiast',
-  'Photography enthusiast'
+  'Photography enthusiast',
 ])
 
 onMounted(() => {
@@ -76,11 +80,11 @@ onMounted(() => {
   if (authStore.user) {
     console.log('当前登录用户信息:', authStore.user)
     welcomeText.value = `${authStore.user.name || authStore.user.username} is a`
-    
-    // 更新网站标题为当前用户名
+
+    // 更新网站标题为当前用户名 (使用 name 字段)
     siteTitleWords.value = [authStore.user.name || authStore.user.username || 'User', '时序碎影札']
-    
-    // 更新兴趣列表为当前用户的真实兴趣
+
+    // 更新兴趣列表为当前用户的真实兴趣 (使用 interests 字段)
     if (authStore.user.interests && authStore.user.interests.length > 0) {
       userInterests.value = [...authStore.user.interests]
     }
@@ -90,30 +94,34 @@ onMounted(() => {
 })
 
 // 监听用户状态变化，如果用户登录状态改变，更新显示内容
-watch(() => authStore.user, (newUser) => {
-  if (newUser) {
-    console.log('用户状态更新:', newUser)
-    welcomeText.value = `${newUser.name || newUser.username} is a`
-    
-    // 更新网站标题为当前用户名
-    siteTitleWords.value = [newUser.name || newUser.username || 'User', '时序碎影札']
-    
-    // 更新兴趣列表为当前用户的真实兴趣
-    if (newUser.interests && newUser.interests.length > 0) {
-      userInterests.value = [...newUser.interests]
+watch(
+  () => authStore.user,
+  (newUser) => {
+    if (newUser) {
+      console.log('用户状态更新:', newUser)
+      welcomeText.value = `${newUser.name || newUser.username} is a`
+
+      // 更新网站标题为当前用户名 (使用 name 字段)
+      siteTitleWords.value = [newUser.name || newUser.username || 'User', '时序碎影札']
+
+      // 更新兴趣列表为当前用户的真实兴趣 (使用 interests 字段)
+      if (newUser.interests && newUser.interests.length > 0) {
+        userInterests.value = [...newUser.interests]
+      }
+    } else {
+      console.log('用户已退出登录')
+      welcomeText.value = 'CrowdK is a'
+      siteTitleWords.value = ['CrowdKang', '时序碎影札']
+      userInterests.value = [
+        'Elementary Web Code',
+        'Travel enthusiast',
+        'Writing enthusiast',
+        'Photography enthusiast',
+      ]
     }
-  } else {
-    console.log('用户已退出登录')
-    welcomeText.value = 'CrowdK is a'
-    siteTitleWords.value = ['CrowdKang', '时序碎影札']
-    userInterests.value = [
-      'Elementary Web Code',
-      'Travel enthusiast',
-      'Writing enthusiast',
-      'Photography enthusiast'
-    ]
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
+)
 </script>
 <style scoped>
 .ma-bt {

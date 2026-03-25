@@ -105,8 +105,8 @@ import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const currentUserAvatar = computed(() => {
-  // 使用当前登录用户的头像，如果没有则使用默认头像
-  return authStore.user?.userPicture || authStore.user?.avatar || '/src/IMG/TX/TX.jpg'
+  // 使用当前登录用户的 avatar 字段，如果没有则使用 userPicture，最后使用默认头像
+  return authStore.user?.avatar || authStore.user?.userPicture || '/src/IMG/TX/TX.jpg'
 })
 
 const direction = ref<OrbitDirection>(ORBIT_DIRECTION.Clockwise)

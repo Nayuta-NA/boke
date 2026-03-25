@@ -25,9 +25,10 @@ const globalSettingsStore = useGlobalSettingsStore()
 // 定义不需要布局的路由名称
 const noLayoutRoutes = ['login', 'register', 'wall', 'global-settings']
 
-// 计算是否应该显示布局组件
+// 计算是否应该显示布局组件 - 现在无论是否登录都显示 Layout
 const shouldShowLayout = computed(() => {
-  return authStore.isAuthenticated && !noLayoutRoutes.includes(route.name as string)
+  // 排除不需要布局的页面
+  return !noLayoutRoutes.includes(route.name as string)
 })
 
 // 动态更新主题色 CSS 变量
@@ -55,6 +56,11 @@ const updateThemeBackground = (background: { type: string; color: string; imageU
     document.documentElement.style.setProperty('--app-background-image', `url(${background.imageUrl})`)
     document.documentElement.style.setProperty('--app-background', '#f5f5f5')
   }
+}
+
+// 动态更新导航栏颜色 CSS 变量
+const updateNavbarColor = (color: string) => {
+  document.documentElement.style.setProperty('--navbar-color', color)
 }
 
 // 调整颜色亮度的辅助函数
@@ -91,6 +97,15 @@ watch(
     updateThemeBackground(newBackground)
   },
   { immediate: true, deep: true }
+)
+
+// 监听导航栏颜色变化
+watch(
+  () => globalSettingsStore.navbarConfig.backgroundColor,
+  (newColor) => {
+    updateNavbarColor(newColor)
+  },
+  { immediate: true }
 )
 
 // 在组件挂载时初始化认证状态

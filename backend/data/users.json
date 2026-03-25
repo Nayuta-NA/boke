@@ -4,14 +4,20 @@
     "username": "nayuta",
     "password": "123456",
     "email": "nayuta@example.com",
-    "name": "Nayuta",
-    "avatar": "/src/IMG/TX/TX.jpg",
-    "userPicture": "/src/IMG/TX/TX.jpg",
+    "name": "Mitaka",
+    "avatar": "http://localhost:5000/uploads/495190c4-2cbb-4e42-aa8e-c8b0fcb3b98c.jpg",
+    "userPicture": "http://localhost:5000/uploads/avatar1.jpg",
     "userName": "Nayuta",
     "userRole": "admin",
     "webLogo": "/src/IMG/TX/TX.jpg",
     "mainColor": "#1890ff",
-    "interests": ["Web Developer", "旅行爱好者", "Writing enthusiast", "Photography enthusiast"]
+    "introduction": "热爱编程和旅行，喜欢用代码记录生活的美好瞬间。",
+    "interests": [
+      "Web Developer",
+      "旅行爱好者",
+      "Writing enthusiast",
+      "Photography enthusiast"
+    ]
   },
   {
     "id": 2,
@@ -25,7 +31,13 @@
     "userRole": "user",
     "webLogo": "/src/IMG/TX/xz2.jpg",
     "mainColor": "#52c41a",
-    "interests": ["初级前端", "旅行爱好者", "Writing enthusiast", "Photography enthusiast"]
+    "introduction": "初级前端开发者，正在努力学习新技术！",
+    "interests": [
+      "初级前端",
+      "旅行爱好者",
+      "Writing enthusiast",
+      "Photography enthusiast"
+    ]
   },
   {
     "id": 3,
@@ -39,7 +51,13 @@
     "userRole": "user",
     "webLogo": "/src/IMG/TX/TX.jpg",
     "mainColor": "#f5222d",
-    "interests": ["后端开发专家", "技术博主", "开源贡献者", "咖啡爱好者"]
+    "introduction": "后端开发专家，热衷于开源和技术分享。",
+    "interests": [
+      "后端开发专家",
+      "技术博主",
+      "开源贡献者",
+      "咖啡爱好者"
+    ]
   },
   {
     "id": 4,
@@ -49,8 +67,15 @@
     "userRole": "user",
     "webLogo": "",
     "mainColor": "#1890ff",
-    "name": "",
+    "name": "aaaaa",
     "email": "",
-    "interests": ["新手学习者", "好奇探索者", "代码爱好者", "技术极客"]
+    "avatar": "",
+    "introduction": "",
+    "interests": [
+      "新手学习者",
+      "好奇探索者",
+      "代码爱好者",
+      "技术极客"
+    ]
   }
 ]

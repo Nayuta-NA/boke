@@ -14,7 +14,8 @@
       </div>
 
       <div class="actions-section">
-        <button class="create-article-btn" @click="showCreateModal">
+        <!-- 新建文章按钮 - 仅登录用户可见 -->
+        <button v-if="canCreate()" class="create-article-btn" @click="showCreateModal">
           <PlusOutlined />
           新建文章
         </button>
@@ -161,6 +162,8 @@ import { PlusOutlined } from '@ant-design/icons-vue'
 import ArticlesCard2 from '@/components/ArticlesCard/ArticlesCard2.vue'
 import ArticlesCard1 from '@/components/ArticlesCard/ArticlesCard1.vue'
 import { useArticlesStore } from '@/stores/articles'
+import { useAuthStore } from '@/stores/auth'
+import { canCreate } from '@/lib/permissions'
 // import Marquee from '@/components/pl/Marquee.vue'
 // import Recommend from '@/components/Recommend/index.vue'
 

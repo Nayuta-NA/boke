@@ -7,7 +7,7 @@
       :more-path="morePath"
     >
       <template v-slot:main>
-        <section class="py-16 bg-white">
+        <section class="py-16" style="background-color: var(--navbar-color)">
           <div
             v-if="provincePhotos.length > 0"
             class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4"
@@ -15,7 +15,8 @@
             <div
               v-for="(province, index) in provincePhotos.slice(0, 3)"
               :key="province.name"
-              class="group relative w-full aspect-[3/4] overflow-hidden rounded-lg bg-white shadow-sm cursor-pointer transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1"
+              class="group relative w-full aspect-[3/4] overflow-hidden rounded-lg shadow-sm cursor-pointer transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1"
+              style="background-color: var(--app-background)"
               @mouseenter="() => handleMouseEnter(index)"
               @mouseleave="handleMouseLeave"
               @click="() => handleCardClick(province.name)"
@@ -29,7 +30,7 @@
                     height: hoveredIndex === index ? '100%' : '75%',
                     transformOrigin: 'top right',
                   }"
-                  class="rounded-lg overflow-hidden bg-gray-100 relative transition-all duration-[2000ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  class="rounded-lg overflow-hidden relative transition-all duration-[2000ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
                   :class="{
                     'rounded-none': hoveredIndex === index,
                   }"
@@ -62,7 +63,8 @@
                 <!-- 右侧横向文字区域 - hover 时隐藏 -->
                 <div
                   v-if="hoveredIndex !== index"
-                  class="w-[28%] h-full flex items-center justify-center bg-gray-50 rounded-lg p-3 transition-opacity duration-[2000ms] ease-[cubic-bezier(0.4,0,0.2,1)] opacity-100 group-hover:opacity-0"
+                  class="w-[28%] h-full flex items-center justify-center rounded-lg p-3 transition-opacity duration-[2000ms] ease-[cubic-bezier(0.4,0,0.2,1)] opacity-100 group-hover:opacity-0"
+                  style="background-color: var(--navbar-color)"
                 >
                   <div class="flex gap-1">
                     <span
@@ -82,7 +84,10 @@
                 class="absolute bottom-4 left-4 right-4 h-[18%] flex gap-3 transition-opacity duration-[2000ms] ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:opacity-0"
               >
                 <!-- 左下区域 -->
-                <div class="w-[65%] h-full rounded-lg bg-gray-50 p-3 flex flex-col justify-center">
+                <div
+                  class="w-[65%] h-full rounded-lg p-3 flex flex-col justify-center"
+                  style="background-color: var(--navbar-color)"
+                >
                   <div class="flex items-center gap-2 mb-1">
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M10 2a8 8 0 100 16 8 8 0 000-16zM10 16a6 6 0 110-12 6 6 0 010 12z" />
@@ -99,7 +104,8 @@
 
                 <!-- 右下区域 -->
                 <div
-                  class="w-[35%] h-full rounded-lg bg-gray-50 p-3 flex items-center justify-center"
+                  class="w-[35%] h-full rounded-lg p-3 flex items-center justify-center"
+                  style="background-color: var(--navbar-color)"
                 >
                   <div class="flex flex-col items-center gap-1">
                     <h3 class="text-sm font-bold text-gray-800">{{ province.name }}</h3>
@@ -125,6 +131,7 @@ import { useTravelsStore } from '@/stores/travels'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGlobalSettingsStore } from '@/stores/globalSettings'
 
 // 定义省份照片类型
 interface ProvincePhoto {
@@ -136,6 +143,11 @@ interface ProvincePhoto {
 
 const travelsStore = useTravelsStore()
 const router = useRouter()
+const globalSettings = useGlobalSettingsStore()
+
+// 从全局配置获取颜色
+const navbarColor = computed(() => globalSettings.navbarConfig.backgroundColor)
+const backgroundColor = computed(() => globalSettings.themeBackground.color)
 
 // 确保数据已加载
 onMounted(() => {

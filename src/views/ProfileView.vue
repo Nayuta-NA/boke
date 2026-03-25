@@ -197,9 +197,9 @@ const primaryColor = computed(() => {
 const currentUserProfile = computed(() => {
   if (authStore.user) {
     return {
-      name: authStore.user.userName || authStore.user.username,
+      name: authStore.user.name || authStore.user.username,
       title: authStore.user.userRole ? `${authStore.user.userRole}` : '前端开发工程师 & 旅行爱好者',
-      bio: '热爱技术与旅行的开发者，专注于前端技术研究与实践，喜欢在代码世界里探索，在真实世界中行走。通过文字记录技术成长与旅行见闻，分享生活中的点点滴滴。',
+      bio: authStore.user.introduction || '热爱技术与旅行的开发者，专注于前端技术研究与实践，喜欢在代码世界里探索，在真实世界中行走。通过文字记录技术成长与旅行见闻，分享生活中的点点滴滴。',
       skills: [
         'Vue.js', 'TypeScript', 'Node.js', 'CSS3 & HTML5', 
         'Responsive Design', 'React', 'Angular', 'Webpack'

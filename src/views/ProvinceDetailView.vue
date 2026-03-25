@@ -5,7 +5,10 @@
       <h1 class="province-title">{{ province }}</h1>
       <div class="province-stats">
         <span class="photo-count">{{ provincePhotos.length }} 张照片</span>
-        <button class="add-photo-btn" @click="showUploadModal"><PlusOutlined /> 添加照片</button>
+        <!-- 添加照片按钮 - 仅登录用户可见 -->
+        <button v-if="canCreate()" class="add-photo-btn" @click="showUploadModal">
+          <PlusOutlined /> 添加照片
+        </button>
       </div>
     </div>
 
@@ -18,8 +21,8 @@
           class="waterfall-item"
         >
           <div class="photo-card">
-            <!-- 右上角删除按钮 -->
-            <button class="delete-btn" @click.stop="deletePhoto(photo.id)">
+            <!-- 右上角删除按钮 - 仅登录用户可见 -->
+            <button v-if="canDelete()" class="delete-btn" @click.stop="deletePhoto(photo.id)">
               <CloseOutlined />
             </button>
 
@@ -33,7 +36,8 @@
 
     <div class="no-photos" v-else>
       <p>暂无{{ province }}的旅行照片</p>
-      <button class="add-first-photo-btn" @click="showUploadModal">
+      <!-- 添加第一张照片按钮 - 仅登录用户可见 -->
+      <button v-if="canCreate()" class="add-first-photo-btn" @click="showUploadModal">
         <PlusOutlined /> 添加第一张照片
       </button>
     </div>
@@ -131,11 +135,14 @@ import {
   InboxOutlined,
 } from '@ant-design/icons-vue'
 import { useTravelsStore } from '@/stores/travels'
+import { useAuthStore } from '@/stores/auth'
+import { canCreate, canDelete } from '@/lib/permissions'
 import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
 const travelsStore = useTravelsStore()
+const authStore = useAuthStore()
 
 // 获取省份名称
 const province = computed(() => route.params.province)
@@ -362,7 +369,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   gap: 16px;
   padding: 20px;
-  background: white;
+  background: var(--app-background);
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
@@ -372,7 +379,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background-color: #f8fafc;
+  background-color: var(--app-background);
   color: #334155;
   border: none;
   border-radius: 8px;
@@ -383,7 +390,7 @@ onMounted(async () => {
 }
 
 .back-button:hover {
-  background-color: #f1f5f9;
+  background-color: var(--navbar-color);
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -427,7 +434,7 @@ onMounted(async () => {
   overflow: hidden;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  background: white;
+  background: var(--app-background);
   transition: all 0.3s ease;
 }
 
@@ -486,7 +493,7 @@ onMounted(async () => {
 .no-photos {
   text-align: center;
   padding: 80px 20px;
-  background: white;
+  background: var(--app-background);
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }

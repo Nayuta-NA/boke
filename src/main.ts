@@ -18,12 +18,14 @@ const app = createApp(App)
 app.use(Antd)
 
 // 使用 Pinia 和 Router
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 
-// 初始化认证状态（确保在挂载前完成）
+// 初始化认证状态（在应用挂载前完成）
 import { useAuthStore } from './stores/auth'
-const authStore = useAuthStore()
-authStore.initializeAuth()
 
-app.mount('#app')
+// 等待认证初始化完成后再挂载应用
+useAuthStore().initializeAuth().finally(() => {
+  app.mount('#app')
+})

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { userAPI } from '@/lib/api'
 
 export interface User {
   id: number
@@ -14,6 +15,7 @@ export interface User {
   webLogo?: string
   mainColor?: string
   interests?: string[]
+  introduction?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -35,29 +37,76 @@ export const useAuthStore = defineStore('auth', () => {
       ...(userData.userRole && { userRole: userData.userRole }),
       ...(userData.webLogo && { webLogo: userData.webLogo }),
       ...(userData.mainColor && { mainColor: userData.mainColor }),
-      ...(userData.interests && { interests: userData.interests })
+      ...(userData.interests && { interests: userData.interests }),
+      ...(userData.introduction && { introduction: userData.introduction }),
     }
-    
-    // 保存到 localStorage
-    localStorage.setItem('user', JSON.stringify(user.value))
+
+    // 只保存用户 ID 到 localStorage，用于标识当前登录用户
+    localStorage.setItem('userId', String(user.value.id))
   }
 
   const logout = () => {
     user.value = null
-    localStorage.removeItem('user')
+    // 清除存储的用户 ID
+    localStorage.removeItem('userId')
   }
 
-  const initializeAuth = () => {
-    // 从 localStorage 恢复用户状态
-    const savedUser = localStorage.getItem('user')
-    if (savedUser) {
+  const initializeAuth = async () => {
+    // 从 localStorage 获取已登录用户的 ID
+    const savedUserId = localStorage.getItem('userId')
+    
+    if (savedUserId) {
       try {
-        const userData = JSON.parse(savedUser)
-        user.value = userData
-      } catch (e) {
-        console.error('Failed to parse user data from localStorage', e)
+        const userId = parseInt(savedUserId)
+        if (!isNaN(userId)) {
+          // 通过 API 获取用户数据
+          await fetchUser(userId)
+        } else {
+          // ID 格式不正确，清除它
+          localStorage.removeItem('userId')
+        }
+      } catch (error) {
+        console.error('初始化认证状态失败:', error)
+        // 如果获取失败，清除存储的 ID
+        localStorage.removeItem('userId')
       }
     }
+  }
+
+  // 从 API 获取用户数据
+  const fetchUser = async (userId: number) => {
+    try {
+      const response = await userAPI.getById(userId)
+      const userData = response.data
+      
+      user.value = {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email || '',
+        name: userData.name || userData.username,
+        ...(userData.avatar && { avatar: userData.avatar }),
+        ...(userData.userPicture && { userPicture: userData.userPicture }),
+        ...(userData.userName && { userName: userData.userName }),
+        ...(userData.userRole && { userRole: userData.userRole }),
+        ...(userData.webLogo && { webLogo: userData.webLogo }),
+        ...(userData.mainColor && { mainColor: userData.mainColor }),
+        ...(userData.interests && { interests: userData.interests }),
+        ...(userData.introduction && { introduction: userData.introduction }),
+      }
+      
+      return user.value
+    } catch (error) {
+      console.error('获取用户数据失败:', error)
+      throw error
+    }
+  }
+
+  // 刷新用户数据
+  const refreshUser = async () => {
+    if (user.value?.id) {
+      return await fetchUser(user.value.id)
+    }
+    return null
   }
 
   return {
@@ -65,6 +114,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     login,
     logout,
-    initializeAuth
+    initializeAuth,
+    fetchUser,
+    refreshUser,
   }
 })

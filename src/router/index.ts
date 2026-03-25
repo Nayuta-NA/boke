@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { canAccessRoute } from '@/lib/permissions'
 import HomeView from '../views/HomeView.vue'
 import ArticlesView from '../views/ArticlesView.vue'
 import TravelView from '../views/TravelView.vue'
@@ -135,11 +136,9 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   authStore.initializeAuth()
   
-  // 检查路由是否需要认证
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  
-  // 如果路由需要认证但用户未登录，则重定向到登录页
-  if (requiresAuth && !authStore.isAuthenticated) {
+  // 使用权限控制函数检查是否可以访问该路由
+  if (!canAccessRoute(to)) {
+    // 未登录用户尝试访问受保护页面，重定向到登录页
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && authStore.isAuthenticated) {
     // 如果已登录用户尝试访问登录或注册页面，则重定向到首页

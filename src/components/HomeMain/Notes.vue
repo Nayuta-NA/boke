@@ -5,11 +5,11 @@
       title="日常随记"
       introduce="记录生活中的点滴思考和灵感瞬间"
       bg="white"
-      height="auto"
+      height="750px"
       :more-path="morePath"
     >
       <template v-slot:main>
-        <section class="py-16 bg-white">
+        <section class="py-8 bg-white">
           <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div
@@ -31,7 +31,7 @@
                   </div>
                 </div>
                 <!-- 内容摘要 -->
-                <p class="text-gray-600 mb-4">{{ note.desc }}</p>
+                <p class="text-gray-600 mb-4 line-clamp-3">{{ note.desc }}</p>
                 <!-- 阅读更多 -->
                 <router-link
                   :to="`/notes/${note.id}`"
@@ -53,21 +53,32 @@
 import HomeMainBOX from '@/components/HomeMainBOX.vue'
 import { useRouter } from 'vue-router'
 import { useNotesStore } from '@/stores/notes'
+import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { onMounted } from 'vue' // 添加必要的导入
+import { onMounted, watch } from 'vue'
 
 const router = useRouter()
 const notesStore = useNotesStore()
+const authStore = useAuthStore()
 const { notes } = storeToRefs(notesStore)
 
 // 在组件挂载时获取数据
 onMounted(async () => {
-  if (notes.value.length === 0) {
-    await notesStore.fetchNotes()
-  }
+  await notesStore.fetchNotes()
 })
 
-// 使用统一数据的前4条记录
+// 监听登录状态变化，确保登录后重新获取数据
+watch(
+  () => authStore.isAuthenticated,
+  async (newVal) => {
+    if (newVal) {
+      await notesStore.fetchNotes()
+    }
+  },
+  { immediate: true },
+)
+
+// 使用统一数据的前 4 条记录
 const displayedNotes = notes.value.slice(0, 4)
 
 const morePath = '/notes'

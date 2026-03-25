@@ -120,7 +120,7 @@ import TextGenerateEffect from './TextGenerateEffect.vue'
   min-height: 300px;
   overflow-y: auto;
   padding: 8px;
-  background-color: #f9fafb;
+
   border-radius: 4px;
 }
 

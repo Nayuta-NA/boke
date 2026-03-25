@@ -1,5 +1,5 @@
 <template>
-  <a-layout v-if="authStore.isAuthenticated">
+  <a-layout>
     <a-layout-header :class="['header', { hidden: isHidden }]">
       <div class="navigation">
         <div class="left-nav">
@@ -12,11 +12,19 @@
           <router-link to="/travel" exact-active-class="router-link-active">旅游</router-link>
           <router-link to="/notes" exact-active-class="router-link-active">随记</router-link>
           <router-link to="/frontend" exact-active-class="router-link-active">前端</router-link>
-          <router-link to="/profile" exact-active-class="router-link-active">个人</router-link>
+          <!-- 个人链接仅对登录用户可见 -->
+          <router-link 
+            v-if="authStore.isAuthenticated" 
+            to="/profile" 
+            exact-active-class="router-link-active"
+          >
+            个人
+          </router-link>
         </div>
 
         <div class="right-nav">
-          <div class="icon-placeholders">
+          <!-- 已登录显示用户菜单，未登录显示登录/注册按钮 -->
+          <div v-if="authStore.isAuthenticated" class="icon-placeholders">
             <a-dropdown>
               <a class="ant-dropdown-link user-dropdown" @click.prevent>
                 {{ authStore.user?.name }}
@@ -32,11 +40,19 @@
               </template>
             </a-dropdown>
           </div>
+          
+          <!-- 未登录时显示登录/注册按钮 -->
+          <div v-else class="auth-buttons">
+            <router-link to="/login" class="auth-btn login-btn">登录</router-link>
+            <router-link to="/register" class="auth-btn register-btn">注册</router-link>
+          </div>
         </div>
       </div>
     </a-layout-header>
+    
+    <!-- 主内容区域 -->
+    <slot />
   </a-layout>
-  <slot v-else />
 </template>
 
 <script setup lang="ts">
@@ -59,7 +75,7 @@ const navbarConfig = computed(() => globalSettingsStore.navbarConfig)
 watch(
   () => navbarConfig.value.backgroundColor,
   (newColor) => {
-    document.documentElement.style.setProperty('--navbar-background-color', newColor)
+    // 不再需要设置 CSS 变量，由 App.vue 统一管理
   },
   { immediate: true }
 )
@@ -111,7 +127,7 @@ const handleLogout = () => {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   height: 64px;
   transition: transform 0.3s ease-in-out;
-  background-color: var(--navbar-background-color, #ffffff);
+  background-color: var(--navbar-color, #ffffff);
 }
 
 .header.hidden {
@@ -219,6 +235,46 @@ const handleLogout = () => {
 
 .user-dropdown:hover {
   background-color: rgba(233, 236, 239, 0.7);
+}
+
+/* 未登录时的认证按钮 */
+.auth-buttons {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.auth-btn {
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.login-btn {
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.login-btn:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.register-btn {
+  background-color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  color: white;
+}
+
+.register-btn:hover {
+  background-color: var(--primary-hover-color, var(--primary-color));
+  opacity: 0.9;
+  color: white;
 }
 
 @media (max-width: 768px) {

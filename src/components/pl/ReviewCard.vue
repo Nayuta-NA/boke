@@ -1,6 +1,7 @@
 <template>
   <div
-    class="flex flex-col rounded-lg bg-white dark:bg-gray-800 p-4 shadow-md transition-all duration-300 hover:shadow-lg mx-4 w-[320px] sm:w-[350px] md:w-[400px]"
+    class="flex flex-col rounded-lg p-4 shadow-md transition-all duration-300 hover:shadow-lg mx-4 w-[320px] sm:w-[350px] md:w-[400px]"
+    style="background-color: var(--navbar-color)"
   >
     <div class="flex items-center gap-3 mb-2">
       <!-- 使用 CSS 渐变背景替代头像图片 -->
@@ -24,8 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
-
 interface ReviewCardProps {
   name: string
   username: string

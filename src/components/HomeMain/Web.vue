@@ -8,14 +8,17 @@
       :more-path="morePath"
     >
       <template v-slot:main>
-        <section class="py-16 bg-gray-50">
+        <section class="py-16" style="background-color: var(--navbar-color)">
           <div class="container mx-auto px-4">
             <!-- 标题栏（保持原样式逻辑） -->
 
             <!-- 内容区：技术栈 + 项目展示 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <!-- 技术栈卡片 -->
-              <div class="bg-white rounded-xl shadow-sm p-6 lg:col-span-1">
+              <div
+                class="rounded-xl shadow-sm p-6 lg:col-span-1"
+                style="background-color: var(--app-background)"
+              >
                 <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
                   <i class="fas fa-code text-primary mr-2"></i>
                   技术栈
@@ -47,7 +50,8 @@
                 <div
                   v-for="project in projects"
                   :key="project.id"
-                  class="bg-white rounded-xl shadow-sm overflow-hidden group cursor-pointer"
+                  class="rounded-xl shadow-sm overflow-hidden group cursor-pointer"
+                  style="background-color: var(--app-background)"
                   @click="goToProjectDetail(project)"
                 >
                   <div class="md:flex">

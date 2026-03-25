@@ -2,7 +2,8 @@
   <div class="leave-message">
     <h2 class="title">留言墙</h2>
     <pl :reviews="reviews" />
-    <button @click="goToWall">进入留言墙</button> <!-- 添加跳转按钮 -->
+    <button @click="goToWall">进入留言墙</button>
+    <!-- 添加跳转按钮 -->
   </div>
 </template>
 
@@ -14,8 +15,11 @@ import { useRouter } from 'vue-router' // 导入 vue-router
 const router = useRouter() // 初始化 router
 
 interface Review {
+  id: string
   name: string
+  username: string
   body: string
+  img: string
   createdAt: string
 }
 
@@ -37,12 +41,18 @@ const fetchReviews = async () => {
     console.error('获取留言数据失败:', error)
     reviews.value = [
       {
+        id: '1',
         name: '访客',
+        username: '@visitor',
+        img: 'https://avatar.vercel.sh/visitor',
         body: '这是一个精选留言示例。',
         createdAt: new Date().toISOString(),
       },
       {
+        id: '2',
         name: '用户',
+        username: '@user',
+        img: 'https://avatar.vercel.sh/user',
         body: '感谢这个网站，很喜欢！',
         createdAt: new Date().toISOString(),
       },
@@ -62,6 +72,7 @@ const goToWall = () => {
   flex-direction: column;
   align-items: center;
   padding: 20px;
+  border-radius: 12px;
 }
 
 .title {

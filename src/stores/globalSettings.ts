@@ -74,7 +74,7 @@ export const useGlobalSettingsStore = defineStore('globalSettings', () => {
       backgroundColor: '#ffffff'  // 默认白色导航栏
     })
   )
-  
+
   const avatarUrl = ref<string>(
     loadFromStorage<string>('avatarUrl', 'https://via.placeholder.com/80')
   )

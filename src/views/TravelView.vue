@@ -41,7 +41,11 @@
     <div class="province-gallery-section">
       <div class="section-header">
         <h2 class="section-title">我的足迹</h2>
-        <button class="create-btn" @click="showCreateModal"><PlusOutlined /> 新建记录</button>
+        <!-- 新建记录按钮 - 仅登录用户可见 -->
+        <button v-if="canCreate()" class="create-btn" @click="showCreateModal">
+          <PlusOutlined />
+          新建记录
+        </button>
       </div>
 
       <div class="provinces-grid">
@@ -134,11 +138,14 @@ import * as echarts from 'echarts'
 import chinaJson from '@/components/map/chinaMap.json'
 import { useTravelsStore } from '@/stores/travels'
 import { useArticlesStore } from '@/stores/articles'
+import { useAuthStore } from '@/stores/auth'
+import { canCreate } from '@/lib/permissions'
 import axios from 'axios'
 
 const router = useRouter()
 const travelsStore = useTravelsStore()
 const articlesStore = useArticlesStore()
+const authStore = useAuthStore()
 
 // 省份到省会的映射
 const provinceToCapital = ref({
