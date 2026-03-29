@@ -278,5 +278,13 @@
     "name": "",
     "location": "",
     "year": 2026
+  },
+  {
+    "id": "ec339d54-6482-4e1a-8708-e0dd63cf4f68",
+    "url": "http://localhost:5000/uploads/cc1ff2ed-85be-4bf9-8c3d-5a1048b44c7d.jpg",
+    "province": "西藏",
+    "name": "",
+    "location": "",
+    "year": 2026
   }
 ]

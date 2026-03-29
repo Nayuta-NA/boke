@@ -175,6 +175,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { message } from 'ant-design-vue'
+import { userAPI } from '@/lib/api'
 import {
   UserOutlined,
   LockOutlined,
@@ -550,31 +551,20 @@ const handleRegister = async () => {
   error.value = ''
 
   try {
-    const response = await fetch('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: registerForm.username,
-        password: registerForm.password,
-      }),
+    const response = await userAPI.create({
+      username: registerForm.username,
+      password: registerForm.password,
     })
 
-    if (response.ok) {
-      const userData = await response.json()
-      authStore.login(userData)
+    if (response.data) {
+      authStore.login(response.data)
       message.success('注册成功')
       router.push('/')
-    } else {
-      const errorData = await response.json()
-      error.value = errorData.message || '注册失败，请重试'
-      message.error(error.value)
     }
   } catch (err: any) {
     console.error('注册错误:', err)
-    error.value = '网络错误，请确保后端服务已启动'
-    message.error('网络错误，请确保后端服务已启动')
+    error.value = err.response?.data?.error || '网络错误，请确保后端服务已启动'
+    message.error(error.value)
   } finally {
     loading.value = false
   }

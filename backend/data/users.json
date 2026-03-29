@@ -77,5 +77,15 @@
       "代码爱好者",
       "技术极客"
     ]
+  },
+  {
+    "id": 5,
+    "password": "1234567",
+    "userPicture": "",
+    "userName": "",
+    "userRole": "user",
+    "webLogo": "",
+    "mainColor": "#1890ff",
+    "username": "nayuta1"
   }
 ]

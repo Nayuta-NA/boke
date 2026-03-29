@@ -34,7 +34,79 @@
 
         <!-- 文章内容 -->
         <div class="article-content">
-          <div class="content-text" v-html="currentArticle.desc"></div>
+          <!-- 编辑模式工具栏 -->
+          <div v-if="isEditMode" class="edit-toolbar">
+            <div class="toolbar-left">
+              <span class="toolbar-hint">点击文字可直接编辑，Ctrl+S 保存</span>
+            </div>
+            <div class="toolbar-actions">
+              <a-button @click="cancelEdit" size="small">取消</a-button>
+              <a-button type="primary" @click="saveEdit" size="small">保存</a-button>
+            </div>
+          </div>
+
+          <!-- 查看模式 - 管理员可点击编辑 -->
+          <div
+            v-if="!isEditMode && authStore.isAuthenticated"
+            class="content-text"
+            role="button"
+            title="点击编辑文章内容"
+            v-html="currentArticle.desc"
+            @click="handleContentClick"
+          ></div>
+
+          <!-- 查看模式 - 普通用户只读 -->
+          <div v-else-if="!isEditMode" class="content-text" v-html="currentArticle.desc"></div>
+
+          <!-- 编辑模式 - 可编辑区域 -->
+          <div
+            v-else
+            class="content-text editable"
+            contenteditable="true"
+            v-html="editContent"
+            @input="handleContentInput"
+            @keydown="handleKeyDown"
+            @keyup="handleKeyup"
+            @click="handleContentClick"
+            ref="editableRef"
+          ></div>
+
+          <!-- 斜杠命令菜单 -->
+          <div
+            v-if="showSlashMenu"
+            class="slash-menu"
+            :style="{ top: menuPosition.top + 'px', left: menuPosition.left + 'px' }"
+          >
+            <div class="slash-menu-item" @click="insertHeadingFromSlash">
+              <div class="slash-menu-icon">
+                <FontColorsOutlined />
+              </div>
+              <div class="slash-menu-text">
+                <div class="slash-menu-title">标题</div>
+                <div class="slash-menu-desc">将当前行转换为标题</div>
+              </div>
+            </div>
+
+            <div class="slash-menu-item" @click="showLinkCardModal = true">
+              <div class="slash-menu-icon">
+                <LinkOutlined />
+              </div>
+              <div class="slash-menu-text">
+                <div class="slash-menu-title">链接卡片</div>
+                <div class="slash-menu-desc">插入链接卡片组件</div>
+              </div>
+            </div>
+
+            <div class="slash-menu-item" @click="insertCodeBlockFromSlash">
+              <div class="slash-menu-icon">
+                <CodeOutlined />
+              </div>
+              <div class="slash-menu-text">
+                <div class="slash-menu-title">代码块</div>
+                <div class="slash-menu-desc">插入 TypeScript 代码块</div>
+              </div>
+            </div>
+          </div>
 
           <!-- 图片展示 -->
           <div v-if="currentArticle.cover" class="article-image">
@@ -52,6 +124,38 @@
             </a-tag>
           </div>
         </div>
+
+        <!-- 链接卡片编辑对话框 -->
+        <a-modal
+          v-model:open="showLinkCardModal"
+          title="插入链接卡片"
+          width="520px"
+          @ok="confirmLinkCard"
+          @cancel="showLinkCardModal = false"
+          okText="插入"
+          cancelText="取消"
+        >
+          <a-form layout="vertical">
+            <a-form-item label="卡片标题" required>
+              <a-input v-model:value="linkCardTitle" placeholder="请输入卡片标题" size="large" />
+            </a-form-item>
+            <a-form-item label="卡片描述" required>
+              <a-textarea
+                v-model:value="linkCardDesc"
+                placeholder="请输入卡片描述"
+                :rows="2"
+                size="large"
+              />
+            </a-form-item>
+            <a-form-item label="链接地址" required>
+              <a-input
+                v-model:value="linkCardUrl"
+                placeholder="请输入链接地址 (https://...)"
+                size="large"
+              />
+            </a-form-item>
+          </a-form>
+        </a-modal>
       </div>
     </div>
 
@@ -80,7 +184,7 @@
         <ShareAltOutlined />
       </button>
 
-      <!-- 编辑按钮（仅登录用户可见） -->
+      <!-- 编辑文章（抽屉方式 - 仅登录用户可见） -->
       <button v-if="authStore.isAuthenticated" class="toolbar-btn edit-btn" @click="openEditDrawer">
         <EditOutlined />
       </button>
@@ -97,7 +201,7 @@
 
     <!-- 编辑文章的抽屉 -->
     <a-drawer
-      v-model:visible="showEditDrawer"
+      v-model:open="showEditDrawer"
       title="编辑文章"
       placement="right"
       :width="720"
@@ -184,7 +288,21 @@
         </a-form-item>
 
         <a-form-item label="内容" name="desc" :rules="[{ required: true, message: '请输入内容' }]">
-          <a-textarea v-model:value="editForm.desc" placeholder="请输入文章内容" :rows="12" />
+          <div
+            style="
+              background: #f5f7fa;
+              padding: 12px;
+              border-radius: 6px;
+              border: 1px solid #e8e8e8;
+            "
+          >
+            <p style="margin: 0 0 8px 0; color: #666; font-size: 13px">
+              ℹ️ 文章内容请在正文区域直接编辑，支持富文本格式
+            </p>
+            <p style="margin: 0; color: #999; font-size: 12px">
+              当前内容长度：{{ (editForm.desc || '').replace(/<[^>]*>/g, '').length }} 字符
+            </p>
+          </div>
         </a-form-item>
 
         <a-form-item label="标签" name="tags">
@@ -286,12 +404,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import {
   LikeOutlined,
-  EyeOutlined,
   MessageOutlined,
   ShareAltOutlined,
   EditOutlined,
@@ -300,6 +417,13 @@ import {
   CloseOutlined,
   UploadOutlined,
   UserOutlined,
+  PlusOutlined,
+  LinkOutlined,
+  CodeOutlined,
+  FontColorsOutlined,
+  FieldTimeOutlined,
+  MinusOutlined,
+  FormatPainterOutlined,
 } from '@ant-design/icons-vue'
 import dayjs from 'dayjs'
 import { useArticlesStore } from '@/stores/articles'
@@ -314,30 +438,43 @@ const likeCount = ref(0)
 const previewUrl = ref('')
 const selectedFile = ref<File | null>(null)
 const commentInput = ref('')
-const comments = ref([
-  {
-    id: 1,
-    author: '访客',
-    content:
-      '我是一名大学生，正在 b 站看你的视频学习做博客平台，想要凭借这一个项目找到实习岗位，但是随着 ai 发展的如此迅速，我不知道我做这个项目是否还有意义，每次听见你在视频里说没有动力的时候，都想说一句加油！你的视频做的很好。今天看完视频闲来无事打开这个网站看到这篇文章，发现你是如此热爱生活，也找到了幸福。一切都会好的，对吧！',
-    date: '2024-03-13 21:22',
-    likeCount: 1,
-  },
-  {
-    id: 2,
-    author: '访客',
-    content: '真的非常佩服你，热爱生活，工作也完成的不错，虽然我是三个孩子的爸爸，羡慕你 (们)。',
-    date: '2024-02-17 17:01',
-    likeCount: 0,
-  },
-  {
-    id: 3,
-    author: '访客',
-    content: '加油！往好的方向发展。',
-    date: '2024-02-11 12:37',
-    likeCount: 0,
-  },
-])
+const comments = ref([])
+
+// 编辑模式相关状态
+const isEditMode = ref(false)
+const editContent = ref('')
+const editableRef = ref<HTMLElement | null>(null)
+
+// 保存光标位置 - 已删除，不再需要
+// let savedSelection: Range | null = null
+
+// const saveSelection = () => {
+//   const selection = window.getSelection()
+//   if (selection && selection.rangeCount > 0) {
+//     savedSelection = selection.getRangeAt(0).cloneRange()
+//   }
+// }
+
+// 恢复光标位置 - 已删除，不再需要
+// const restoreSelection = () => {
+//   if (savedSelection) {
+//     const selection = window.getSelection()
+//     if (selection) {
+//       selection.removeAllRanges()
+//       selection.addRange(savedSelection)
+//     }
+//   }
+// }
+
+// 斜杠命令菜单相关状态
+const showSlashMenu = ref(false)
+const menuPosition = reactive({ top: 0, left: 0 })
+const slashMenuRange = ref<Range | null>(null)
+// 链接卡片相关状态
+const showLinkCardModal = ref(false)
+const linkCardTitle = ref('')
+const linkCardDesc = ref('')
+const linkCardUrl = ref('')
 
 // 获取文章 store 和认证 store
 const articlesStore = useArticlesStore()
@@ -367,6 +504,284 @@ const editForm = reactive<EditForm>({
 // 处理图片加载错误 - 隐藏损坏的图片
 const handleImageError = (event: any) => {
   event.target.style.display = 'none'
+}
+
+// 加载文章详情
+const loadArticle = async () => {
+  const articleId = Number(route.params.id)
+  if (!articleId) {
+    message.error('文章 ID 无效')
+    return
+  }
+
+  try {
+    await articlesStore.fetchArticleById(articleId)
+    currentArticle.value = articlesStore.currentArticle
+    if (currentArticle.value) {
+      // 初始化评论列表
+      fetchComments(currentArticle.value.id)
+      // 使用文章的 likeCount，如果没有则使用 commentCount 作为默认值
+      likeCount.value = currentArticle.value.likeCount || currentArticle.value.commentCount || 0
+
+      // 如果是管理员，显示编辑提示
+      if (authStore.isAuthenticated) {
+        message.info({
+          content: '点击文章内容区域即可直接编辑，按 Ctrl+S 保存',
+          duration: 4,
+        })
+      }
+
+      const event = new Event('loaded')
+      window.dispatchEvent(event)
+    }
+  } catch (error) {
+    console.error('加载文章失败:', error)
+    message.error('加载文章失败，请稍后重试')
+    router.push('/articles')
+  }
+}
+
+// 获取评论列表
+const fetchComments = async (articleId: number) => {
+  try {
+    const response = await fetch(`http://localhost:5000/api/comments?articleId=${articleId}`)
+    if (!response.ok) {
+      throw new Error('获取评论失败')
+    }
+    const data = await response.json()
+    comments.value = data
+  } catch (error) {
+    console.error('获取评论失败:', error)
+    comments.value = []
+  }
+}
+
+// 处理内容区域点击（启动编辑）
+const handleContentClick = () => {
+  if (authStore.isAuthenticated && !isEditMode.value) {
+    startEdit()
+  }
+}
+
+// 快速启动编辑（无需点击按钮）
+const enableEditMode = () => {
+  if (!authStore.isAuthenticated || !currentArticle.value) return
+  startEdit()
+}
+
+// 开始编辑
+const startEdit = () => {
+  if (!currentArticle.value) return
+  isEditMode.value = true
+  editContent.value = currentArticle.value.desc
+  nextTick(() => {
+    if (editableRef.value) {
+      editableRef.value.focus()
+      // 将光标移动到内容末尾
+      const range = document.createRange()
+      const sel = window.getSelection()
+      range.selectNodeContents(editableRef.value)
+      range.collapse(false)
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    }
+  })
+}
+
+// 处理内容输入
+const handleContentInput = (event: Event) => {
+  // 直接检测斜杠命令
+  checkSlashMenu()
+}
+
+// 检测斜杠命令
+const checkSlashMenu = () => {
+  const selection = window.getSelection()
+  if (!selection || selection.rangeCount === 0) {
+    console.log('[Slash] No selection')
+    return
+  }
+
+  const range = selection.getRangeAt(0)
+  let textNode = range.startContainer
+
+  // 如果是元素节点，尝试查找文本节点
+  if (textNode.nodeType === Node.ELEMENT_NODE) {
+    const childNodes = textNode.childNodes
+    for (let i = childNodes.length - 1; i >= 0; i--) {
+      if (childNodes[i].nodeType === Node.TEXT_NODE) {
+        textNode = childNodes[i]
+        break
+      }
+    }
+  }
+
+  // 只在文本节点中检测
+  if (textNode.nodeType !== Node.TEXT_NODE) {
+    console.log('[Slash] Not a text node')
+    return
+  }
+
+  const text = textNode.textContent || ''
+  const textBeforeCursor = text.substring(0, range.startOffset)
+
+  console.log('[Slash] Full text:', text)
+  console.log('[Slash] Text before cursor:', textBeforeCursor)
+
+  // 获取当前行（最后一个换行符到光标位置）
+  const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n')
+  const currentLine = textBeforeCursor.substring(lastNewlineIndex + 1)
+
+  console.log('[Slash] Current line:', currentLine)
+
+  // 检测当前行是否只有 /（允许前面有空格）
+  const trimmedLine = currentLine.trim()
+  console.log('[Slash] Trimmed line:', trimmedLine)
+
+  if (trimmedLine === '/') {
+    console.log('[Slash] SHOW MENU!')
+    showSlashMenu.value = true
+    slashMenuRange.value = range.cloneRange()
+
+    nextTick(() => {
+      const rect = range.getBoundingClientRect()
+      // 使用视口坐标，不需要加 scrollY/scrollX
+      menuPosition.top = rect.bottom + 8
+      menuPosition.left = rect.left
+      console.log('[Slash] Menu position:', menuPosition)
+    })
+  } else {
+    console.log('[Slash] HIDE MENU')
+    showSlashMenu.value = false
+    slashMenuRange.value = null
+  }
+}
+
+// 处理键盘快捷键
+const handleKeyDown = (event: KeyboardEvent) => {
+  // Ctrl/Cmd + S 保存
+  if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+    event.preventDefault()
+    saveEdit()
+  }
+  // Tab 键插入代码块
+  if (event.key === 'Tab' && !event.shiftKey) {
+    // 可以在这里自定义 Tab 行为
+  }
+}
+
+// 处理键盘事件
+const handleKeyup = (event: KeyboardEvent) => {
+  // ESC 键关闭菜单
+  if (event.key === 'Escape' && showSlashMenu.value) {
+    showSlashMenu.value = false
+    return
+  }
+}
+
+// 取消编辑
+const cancelEdit = () => {
+  isEditMode.value = false
+  editContent.value = ''
+}
+
+// 保存编辑
+const saveEdit = async () => {
+  if (!currentArticle.value || !editableRef.value) return
+
+  try {
+    // 直接从 DOM 读取内容，而不是从 editContent.value
+    const contentFromDOM = editableRef.value.innerHTML
+
+    const articleData = {
+      ...currentArticle.value,
+      desc: contentFromDOM,
+    }
+
+    console.log('保存内容:', contentFromDOM)
+
+    await articlesStore.updateArticle(currentArticle.value.id, articleData)
+    currentArticle.value = { ...articleData }
+    isEditMode.value = false
+    editContent.value = ''
+    message.success('内容已保存')
+  } catch (error) {
+    console.error('保存文章失败:', error)
+    message.error('保存失败，请重试')
+  }
+}
+
+// 在光标位置插入 HTML
+const insertHtmlAtCursor = (html: string) => {
+  const selection = window.getSelection()
+  if (!selection || !editableRef.value) return
+
+  const range = selection.getRangeAt(0)
+  const div = document.createElement('div')
+  div.innerHTML = html
+  const nodes = Array.from(div.childNodes)
+
+  nodes.forEach((node, index) => {
+    const clonedNode = node.cloneNode(true)
+    if (index === 0) {
+      range.insertNode(clonedNode)
+    } else {
+      range.collapse(false)
+      range.insertNode(clonedNode)
+    }
+  })
+
+  // 移动光标到插入内容的末尾
+  range.collapse(false)
+  selection.removeAllRanges()
+  selection.addRange(range)
+
+  // 更新编辑内容
+  editContent.value = editableRef.value.innerHTML
+}
+
+// 通用函数：准备插入环境（恢复光标、删除斜杠）
+const prepareInsert = (): { textNode: Node | null; range: Range | null } | null => {
+  if (!slashMenuRange.value) return null
+
+  const selection = window.getSelection()
+  if (!selection) return null
+
+  selection.removeAllRanges()
+  selection.addRange(slashMenuRange.value)
+
+  let textNode = slashMenuRange.value.startContainer
+  if (textNode.nodeType === Node.ELEMENT_NODE) {
+    const childNodes = textNode.childNodes
+    for (let i = childNodes.length - 1; i >= 0; i--) {
+      if (childNodes[i].nodeType === Node.TEXT_NODE) {
+        textNode = childNodes[i]
+        break
+      }
+    }
+  }
+
+  if (textNode.nodeType !== Node.TEXT_NODE) return null
+
+  const text = textNode.textContent || ''
+  const textBeforeCursor = text.substring(0, slashMenuRange.value.startOffset)
+  const currentLine = textBeforeCursor.split('\n').pop()?.trim()
+
+  if (currentLine === '/') {
+    const newText =
+      text.substring(0, slashMenuRange.value.startOffset - 1) +
+      text.substring(slashMenuRange.value.startOffset)
+    textNode.textContent = newText
+    return { textNode, range: slashMenuRange.value }
+  }
+
+  return null
+}
+
+// 关闭菜单并清理状态
+const closeSlashMenu = () => {
+  showSlashMenu.value = false
+  slashMenuRange.value = null
 }
 
 // 格式化日期
@@ -644,33 +1059,127 @@ const goBack = () => {
   router.push('/articles')
 }
 
-onMounted(async () => {
-  const articleId = parseInt(route.params.id as string)
+// 组件挂载时加载文章
+onMounted(() => {
+  loadArticle()
+})
 
-  try {
-    const article = await articlesStore.fetchArticleById(articleId)
-    if (article) {
-      currentArticle.value = { ...article }
-      // 使用文章的 likeCount，如果没有则使用 commentCount 作为默认值
-      likeCount.value = article.likeCount || article.commentCount || 0
+// 斜杠菜单 - 插入标题
+const insertHeadingFromSlash = () => {
+  const result = prepareInsert()
+  if (!result) return
 
-      // 如果文章有评论数据，则使用，否则使用空数组
-      if (article.comments && article.comments.length > 0) {
-        comments.value = article.comments
+  // 插入 H2 标题，并在后面添加一个带占位文本的段落
+  // 这样用户回车后会自然进入普通段落模式
+  const headingHtml = '<h2>标题</h2><p>在此输入正文内容...</p>'
+  insertHtmlAtCursor(headingHtml)
+
+  closeSlashMenu()
+}
+
+// 斜杠菜单 - 插入代码块
+const insertCodeBlockFromSlash = () => {
+  const result = prepareInsert()
+  if (!result) return
+
+  // TypeScript 代码块模板
+  const defaultCode = `// TypeScript 代码示例
+interface User {
+  id: number
+  name: string
+  email: string
+}
+
+const createUser = (user: User): User => {
+  return user
+}`
+
+  const codeHtml = `<pre style="background: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 20px 0; border: 1px solid #e1e4e8;"><code class="language-typescript" style="font-family: 'Courier New', 'Consolas', monospace; font-size: 13px; color: #24292e; line-height: 1.5;">${defaultCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre><p><br/></p>`
+
+  insertHtmlAtCursor(codeHtml)
+  closeSlashMenu()
+}
+
+// 确认插入链接卡片
+const confirmLinkCard = () => {
+  if (!linkCardTitle.value.trim()) {
+    message.warning('请输入卡片标题')
+    return
+  }
+  if (!linkCardDesc.value.trim()) {
+    message.warning('请输入卡片描述')
+    return
+  }
+  if (!linkCardUrl.value.trim()) {
+    message.warning('请输入链接地址')
+    return
+  }
+
+  // 恢复光标位置
+  if (slashMenuRange.value) {
+    const selection = window.getSelection()
+    if (selection) {
+      selection.removeAllRanges()
+      selection.addRange(slashMenuRange.value)
+
+      // 获取当前文本节点
+      let textNode = slashMenuRange.value.startContainer
+      if (textNode.nodeType === Node.ELEMENT_NODE) {
+        const childNodes = textNode.childNodes
+        for (let i = childNodes.length - 1; i >= 0; i--) {
+          if (childNodes[i].nodeType === Node.TEXT_NODE) {
+            textNode = childNodes[i]
+            break
+          }
+        }
       }
 
-      const event = new Event('loaded')
-      window.dispatchEvent(event)
-    } else {
-      message.error('未找到指定的文章')
-      router.push('/articles')
+      if (textNode.nodeType === Node.TEXT_NODE) {
+        const text = textNode.textContent || ''
+        const textBeforeCursor = text.substring(0, slashMenuRange.value.startOffset)
+        const lines = textBeforeCursor.split('\n')
+        const currentLine = lines[lines.length - 1].trim()
+
+        if (currentLine === '/') {
+          // 删除斜杠
+          const newText =
+            text.substring(0, slashMenuRange.value.startOffset - 1) +
+            text.substring(slashMenuRange.value.startOffset)
+          textNode.textContent = newText
+        }
+      }
     }
-  } catch (error) {
-    console.error('获取文章失败:', error)
-    message.error('获取文章失败')
-    router.push('/articles')
   }
-})
+
+  // 创建链接卡片 HTML
+  const linkCardHtml = `
+    <div style="border: 1px solid #e8e8e8; border-radius: 8px; padding: 16px; margin: 20px 0; background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.2)'; this.style.borderColor='#667eea'" onmouseout="this.style.boxShadow='none'; this.style.borderColor='#e8e8e8'">
+      <a href="${linkCardUrl.value}" target="_blank" style="text-decoration: none; color: inherit;">
+        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 600; color: #333;">${linkCardTitle.value}</h3>
+        <p style="margin: 0 0 12px 0; font-size: 14px; color: #666; line-height: 1.6;">${linkCardDesc.value}</p>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #1890ff;">
+          <span>访问链接</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+    <p><br/></p>
+  `
+
+  insertHtmlAtCursor(linkCardHtml)
+  showLinkCardModal.value = false
+  showSlashMenu.value = false
+  slashMenuRange.value = null
+  linkCardTitle.value = ''
+  linkCardDesc.value = ''
+  linkCardUrl.value = ''
+
+  message.success('链接卡片已插入')
+}
 </script>
 
 <style scoped>
@@ -802,8 +1311,49 @@ onMounted(async () => {
 /* 文章内容样式 */
 .article-content {
   margin-bottom: 60px;
+  position: relative;
 }
 
+/* 编辑模式工具栏 */
+.edit-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.toolbar-hint {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar-actions .ant-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.toolbar-actions .ant-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 查看模式内容区域 */
 .content-text {
   font-size: 16px;
   line-height: 1.8;
@@ -811,37 +1361,417 @@ onMounted(async () => {
   margin-bottom: 32px;
 }
 
-.content-text p {
+.content-text :deep(p) {
   margin-bottom: 24px;
   text-align: justify;
 }
 
-.article-image {
-  margin: 32px 0;
-  border-radius: 12px;
-  overflow: hidden;
+.content-text :deep(h2) {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 32px 0 20px 0;
+  line-height: 1.4;
 }
 
-.article-image img {
-  width: 100%;
-  height: auto;
-  display: block;
+.content-text :deep(h3) {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 24px 0 16px 0;
+  line-height: 1.4;
 }
 
-.article-tags {
-  display: flex;
-  gap: 8px;
-  margin-top: 40px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
+.content-text :deep(h4) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0 12px 0;
 }
 
-.tag-item {
-  font-size: 13px;
-  padding: 4px 12px;
-  background: #f5f5f5;
+.content-text :deep(a) {
+  color: #1890ff;
+  text-decoration: none;
+  border-bottom: 1px solid #1890ff;
+  transition: all 0.3s ease;
+}
+
+.content-text :deep(a:hover) {
+  color: #096dd9;
+  border-bottom-color: #096dd9;
+}
+
+.content-text :deep(hr) {
   border: none;
-  border-radius: 16px;
+  border-top: 2px solid #e8e8e8;
+  margin: 32px 0;
+}
+
+.content-text :deep(blockquote) {
+  border-left: 4px solid #1890ff;
+  padding: 16px 20px;
+  margin: 24px 0;
+  background: #f5f7fa;
+  color: #666;
+  font-style: italic;
+  border-radius: 0 8px 8px 0;
+}
+
+.content-text :deep(pre) {
+  background: #f6f8fa;
+  padding: 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid #e1e4e8;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.content-text :deep(code) {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 13px;
+  color: #24292e;
+  line-height: 1.5;
+}
+
+.content-text :deep(ul),
+.content-text :deep(ol) {
+  margin: 16px 0;
+  padding-left: 32px;
+}
+
+.content-text :deep(li) {
+  margin-bottom: 8px;
+}
+
+/* 管理员可编辑提示样式 */
+.content-text[role='button'] {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.content-text[role='button']:hover {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+  border-radius: 8px;
+}
+
+.content-text[role='button']::after {
+  content: '✏️ 点击编辑';
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(102, 126, 234, 0.9);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.content-text[role='button']:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 可编辑内容区域 */
+.content-text.editable {
+  min-height: 500px;
+  padding: 24px;
+  border: 2px dashed #667eea;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #f8f9ff, #ffffff);
+  outline: none;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+  transition: all 0.3s ease;
+}
+
+.content-text.editable:focus {
+  border-color: #764ba2;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.2);
+}
+
+.content-text.editable :deep(h2) {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 32px 0 20px 0;
+  line-height: 1.4;
+}
+
+.content-text.editable :deep(h3) {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 24px 0 16px 0;
+  line-height: 1.4;
+}
+
+.content-text.editable :deep(h4) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 20px 0 12px 0;
+}
+
+.content-text.editable :deep(p) {
+  margin-bottom: 16px;
+}
+
+.content-text.editable :deep(a) {
+  color: #1890ff;
+  text-decoration: none;
+  border-bottom: 1px solid #1890ff;
+  transition: all 0.3s ease;
+}
+
+.content-text.editable :deep(a:hover) {
+  color: #096dd9;
+  border-bottom-color: #096dd9;
+}
+
+.content-text.editable :deep(hr) {
+  border: none;
+  border-top: 2px solid #e8e8e8;
+  margin: 32px 0;
+}
+
+.content-text.editable :deep(blockquote) {
+  border-left: 4px solid #1890ff;
+  padding: 16px 20px;
+  margin: 24px 0;
+  background: #f5f7fa;
+  color: #666;
+  font-style: italic;
+  border-radius: 0 8px 8px 0;
+}
+
+.content-text.editable :deep(pre) {
+  background: #f6f8fa;
+  padding: 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 24px 0;
+  border: 1px solid #e1e4e8;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+.content-text.editable :deep(code) {
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 13px;
+  color: #24292e;
+  line-height: 1.5;
+}
+
+.content-text.editable :deep(ul),
+.content-text.editable :deep(ol) {
+  margin: 16px 0;
+  padding-left: 32px;
+}
+
+.content-text.editable :deep(li) {
+  margin-bottom: 8px;
+}
+
+/* 斜杠命令菜单样式 */
+.slash-menu {
+  position: fixed;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  min-width: 280px;
+  z-index: 1000;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slash-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.slash-menu-item:hover {
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  border-color: #667eea;
+}
+
+.slash-menu-item:last-child {
+  margin-bottom: 0;
+}
+
+.slash-menu-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%);
+  border-radius: 8px;
+  font-size: 20px;
+  transition: all 0.2s ease;
+}
+
+.slash-menu-item:hover .slash-menu-icon {
+  transform: scale(1.05);
+}
+
+.slash-menu-item:hover .slash-menu-icon:first-child {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.slash-menu-item:hover:nth-child(2) .slash-menu-icon {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #ffffff;
+}
+
+.slash-menu-item:hover:nth-child(3) .slash-menu-icon {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #ffffff;
+}
+
+.slash-menu-text {
+  flex: 1;
+}
+
+.slash-menu-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.slash-menu-desc {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+/* 插入菜单样式 */
+.insert-menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.insert-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+}
+
+.insert-menu-item:hover {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+}
+
+.menu-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecef 100%);
+  border-radius: 12px;
+  font-size: 26px;
+  transition: all 0.3s ease;
+}
+
+.menu-icon-title {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.menu-icon-subtitle {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: #ffffff;
+}
+
+.menu-icon-link {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: #ffffff;
+}
+
+.menu-icon-code {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: #ffffff;
+}
+
+.menu-icon-divider {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: #ffffff;
+}
+
+.menu-icon-quote {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #ffffff;
+}
+
+.insert-menu-item:hover .menu-icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.menu-text {
+  flex: 1;
+}
+
+.menu-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.menu-desc {
+  font-size: 13px;
+  color: #999;
+  line-height: 1.4;
+}
+
+/* 编辑内容按钮样式 */
+.toolbar-btn.edit-content-btn {
+  color: #52c41a;
+  border-color: #52c41a;
+}
+
+.toolbar-btn.edit-content-btn:hover {
+  color: #73d13d;
+  border-color: #73d13d;
+  background: #f6ffed;
 }
 
 /* 右侧悬浮工具栏 */

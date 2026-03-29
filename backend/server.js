@@ -3,11 +3,22 @@ const fs = require('fs')
 const path = require('path')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const multer = require('multer') // 添加文件上传中间件
+const multer = require('multer')
 const { v4: uuidv4 } = require('uuid')
 
+// 导入数据库配置和模型
+const { testConnection } = require('./config/database');
+const { User, Article, Note, Review, Travel } = require('./models');
+
+// 导入路由
+const userRoutes = require('./routes/users');
+const articleRoutes = require('./routes/articles');
+const noteRoutes = require('./routes/notes');
+const reviewRoutes = require('./routes/reviews');
+const travelRoutes = require('./routes/travels');
+
 const app = express()
-const PORT = process.env.PORT || 5000 // 修改为5000端口
+const PORT = process.env.PORT || 5000
 
 // 配置文件上传
 const UPLOAD_DIR = path.join(__dirname, 'uploads')
@@ -48,6 +59,13 @@ app.use(bodyParser.json({ limit: '10mb' }))
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }))
 // 静态文件服务，用于提供上传的图片
 app.use('/uploads', express.static(UPLOAD_DIR))
+
+// 数据库路由
+app.use('/api/db/users', userRoutes);
+app.use('/api/db/articles', articleRoutes);
+app.use('/api/db/notes', noteRoutes);
+app.use('/api/db/reviews', reviewRoutes);
+app.use('/api/db/travels', travelRoutes);
 
 // 数据文件路径
 const DATA_DIR = path.join(__dirname, 'data')
@@ -766,15 +784,32 @@ app.delete('/api/comments/:id', async (req, res) => {
 })
 
 // 启动服务器
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`)
-  console.log(`API endpoints available:`)
-  console.log(`  Articles: GET /api/articles, POST /api/articles`)
-  console.log(`  Notes: GET /api/notes, POST /api/notes`)
-  console.log(`  Travels: GET /api/travels, POST /api/travels`)
-  console.log(`  Users: GET /api/users, POST /api/users`)
-  console.log(`  Reviews: GET /api/reviews, POST /api/reviews`)
+  
+  // 初始化数据库连接
+  try {
+    await testConnection();
+    console.log('✅ 数据库已连接');
+  } catch (error) {
+    console.error('❌ 数据库连接失败:', error);
+  }
+  
+  console.log(`\nAPI endpoints available:`)
+  console.log(`\n=== 数据库 API (SQLite) ===`)
+  console.log(`  Users: GET/POST/PUT/DELETE /api/db/users`)
+  console.log(`  Articles: GET/POST/PUT/DELETE /api/db/articles`)
+  console.log(`  Notes: GET/POST/PUT/DELETE /api/db/notes`)
+  console.log(`  Reviews: GET/POST/PUT/DELETE /api/db/reviews`)
+  console.log(`  Travels: GET/POST/PUT/DELETE /api/db/travels`)
+  console.log(`\n=== 文件 API (JSON) ===`)
+  console.log(`  Articles: GET/POST/PUT/DELETE /api/articles`)
+  console.log(`  Notes: GET/POST/PUT/DELETE /api/notes`)
+  console.log(`  Travels: GET/POST/PUT/DELETE /api/travels`)
+  console.log(`  Users: GET/POST/PUT/DELETE /api/users`)
+  console.log(`  Reviews: GET/POST/PUT/DELETE /api/reviews`)
   console.log(`  Recent Activities: GET /api/recent-activities`)
+  console.log(`  Comments: GET/POST/DELETE /api/comments`)
   console.log(`  Upload: POST /api/upload`)
   console.log(`  Uploads served from: /uploads/*`)
 })

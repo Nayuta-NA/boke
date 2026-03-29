@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API 基础配置
-const API_BASE_URL = 'http://localhost:5000'; // 修改为后端服务器端口5000
+const API_BASE_URL = 'http://localhost:5000'; // 修改为后端服务器端口 5000
 
 // 创建 axios 实例
 const apiClient = axios.create({
@@ -11,6 +11,21 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 添加请求拦截器，自动附加用户 ID
+apiClient.interceptors.request.use(
+  (config) => {
+    // 从 localStorage 获取当前登录用户 ID
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      config.headers['x-user-id'] = userId;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // 定义通用的 API 接口
 interface APIResponse<T> {
@@ -48,47 +63,47 @@ interface LoginResponse {
 
 // 文章 API 服务
 export const articleAPI: ApiService<any, number> = {
-  getAll: () => apiClient.get('/api/articles'),
-  getById: (id: number) => apiClient.get(`/api/articles/${id}`),
-  create: (data: any) => apiClient.post('/api/articles', data),
-  update: (id: number, data: any) => apiClient.put(`/api/articles/${id}`, data),
-  delete: (id: number) => apiClient.delete(`/api/articles/${id}`),
+  getAll: () => apiClient.get('/api/db/articles'),
+  getById: (id: number) => apiClient.get(`/api/db/articles/${id}`),
+  create: (data: any) => apiClient.post('/api/db/articles', data),
+  update: (id: number, data: any) => apiClient.put(`/api/db/articles/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/api/db/articles/${id}`),
 };
 
 // 笔记 API 服务
 export const noteAPI: ApiService<any, string> = {
-  getAll: () => apiClient.get('/api/notes'),
-  getById: (id: string) => apiClient.get(`/api/notes/${id}`),
-  create: (data: any) => apiClient.post('/api/notes', data),
-  update: (id: string, data: any) => apiClient.put(`/api/notes/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/api/notes/${id}`),
+  getAll: () => apiClient.get('/api/db/notes'),
+  getById: (id: string) => apiClient.get(`/api/db/notes/${id}`),
+  create: (data: any) => apiClient.post('/api/db/notes', data),
+  update: (id: string, data: any) => apiClient.put(`/api/db/notes/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/db/notes/${id}`),
 };
 
 // 旅行 API 服务
 export const travelAPI: ApiService<any, string> = {
-  getAll: () => apiClient.get('/api/travels'),
-  getById: (id: string) => apiClient.get(`/api/travels/${id}`),
-  create: (data: any) => apiClient.post('/api/travels', data),
-  update: (id: string, data: any) => apiClient.put(`/api/travels/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/api/travels/${id}`),
+  getAll: () => apiClient.get('/api/db/travels'),
+  getById: (id: string) => apiClient.get(`/api/db/travels/${id}`),
+  create: (data: any) => apiClient.post('/api/db/travels', data),
+  update: (id: string, data: any) => apiClient.put(`/api/db/travels/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/db/travels/${id}`),
 };
 
 // 用户 API 服务
 export const userAPI: ApiService<any, number> = {
-  getAll: () => apiClient.get('/api/users'),
-  getById: (id: number) => apiClient.get(`/api/users/${id}`),
-  create: (data: any) => apiClient.post('/api/users', data),
-  update: (id: number, data: any) => apiClient.put(`/api/users/${id}`, data),
-  delete: (id: number) => apiClient.delete(`/api/users/${id}`),
+  getAll: () => apiClient.get('/api/db/users'),
+  getById: (id: number) => apiClient.get(`/api/db/users/${id}`),
+  create: (data: any) => apiClient.post('/api/db/users', data),
+  update: (id: number, data: any) => apiClient.put(`/api/db/users/${id}`, data),
+  delete: (id: number) => apiClient.delete(`/api/db/users/${id}`),
 };
 
 // 评论 API 服务
 export const reviewAPI: ApiService<any, string> = {
-  getAll: () => apiClient.get('/api/reviews'),
-  getById: (id: string) => apiClient.get(`/api/reviews/${id}`),
-  create: (data: any) => apiClient.post('/api/reviews', data),
-  update: (id: string, data: any) => apiClient.put(`/api/reviews/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/api/reviews/${id}`),
+  getAll: () => apiClient.get('/api/db/reviews'),
+  getById: (id: string) => apiClient.get(`/api/db/reviews/${id}`),
+  create: (data: any) => apiClient.post('/api/db/reviews', data),
+  update: (id: string, data: any) => apiClient.put(`/api/db/reviews/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/db/reviews/${id}`),
 };
 
 // 登录 API 服务

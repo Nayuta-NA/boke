@@ -581,7 +581,7 @@
     "readTime": "6 分钟阅读",
     "province": "云南",
     "city": "昆明市",
-    "commentCount": 29,
+    "commentCount": 28,
     "link": "/articles/25",
     "tags": [
       "鼓浪屿",
@@ -589,15 +589,7 @@
       "海岛"
     ],
     "likeCount": 189,
-    "comments": [
-      {
-        "id": 1,
-        "author": "旅行家",
-        "content": "很适合度假放松的地方",
-        "date": "2024-03-18 09:40",
-        "likeCount": 5
-      }
-    ]
+    "comments": []
   },
   {
     "id": 26,
@@ -665,7 +657,7 @@
     "readTime": "5 分钟阅读",
     "province": "云南",
     "city": "丽江市",
-    "commentCount": 24,
+    "commentCount": 23,
     "link": "/articles/28",
     "tags": [
       "丽江",
@@ -673,15 +665,7 @@
       "纳西族"
     ],
     "likeCount": 178,
-    "comments": [
-      {
-        "id": 1,
-        "author": "慢生活",
-        "content": "向往这样的慢节奏生活",
-        "date": "2024-03-20 17:30",
-        "likeCount": 4
-      }
-    ]
+    "comments": []
   },
   {
     "id": 29,
