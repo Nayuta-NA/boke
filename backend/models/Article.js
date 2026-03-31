@@ -67,6 +67,11 @@ const Article = sequelize.define('Article', {
     type: DataTypes.TEXT,
     allowNull: true,
   },
+  cover: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: '封面图片 Base64 数据或 URL',
+  },
   userId: {
     type: DataTypes.INTEGER,
     allowNull: false,

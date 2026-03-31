@@ -39,8 +39,8 @@ const migrateArticles = async () => {
     const articles = readJsonFile('articles.json');
     
     for (const articleData of articles) {
-      // 移除可能存在的 userId 字段，统一设置为 nayuta 的 ID
-      const { userId, ...restData } = articleData;
+      // 移除可能存在的 userId 和 cover 字段
+      const { userId, cover, ...restData } = articleData;
       await Article.findOrCreate({
         where: { id: articleData.id },
         defaults: {

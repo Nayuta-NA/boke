@@ -180,6 +180,65 @@
               </div>
             </div>
 
+            <!-- 配色灵感推荐 -->
+            <div class="config-card-full">
+              <div class="card-header">
+                <h3 class="card-title">配色灵感推荐</h3>
+              </div>
+              <div class="card-body">
+                <p class="card-desc">精选实用配色方案，一键应用</p>
+                <div class="color-scheme-grid">
+                  <!-- 方案 1: 简约黑色 -->
+                  <div
+                    class="color-scheme-card"
+                    @click="applyColorScheme('#000000', '#FFFFFF', '#F5F5F0')"
+                  >
+                    <div class="scheme-preview">
+                      <div class="scheme-color" style="background-color: #f5f5f0"></div>
+                      <div class="scheme-color" style="background-color: #ffffff"></div>
+                      <div class="scheme-color" style="background-color: #000000"></div>
+                    </div>
+                    <div class="scheme-info">
+                      <span class="scheme-name">简约黑色</span>
+                      <span class="scheme-colors">#F5F5F0 · #FFFFFF · #000000</span>
+                    </div>
+                  </div>
+
+                  <!-- 方案 2: 暖调活力 -->
+                  <div
+                    class="color-scheme-card"
+                    @click="applyColorScheme('#B22A2A', '#F6C12C', '#F0DEBF')"
+                  >
+                    <div class="scheme-preview">
+                      <div class="scheme-color" style="background-color: #f0debf"></div>
+                      <div class="scheme-color" style="background-color: #f6c12c"></div>
+                      <div class="scheme-color" style="background-color: #b22a2a"></div>
+                    </div>
+                    <div class="scheme-info">
+                      <span class="scheme-name">暖调活力</span>
+                      <span class="scheme-colors">#F0DEBF · #F6C12C · #B22A2A</span>
+                    </div>
+                  </div>
+
+                  <!-- 方案 3: 静谧森林 -->
+                  <div
+                    class="color-scheme-card"
+                    @click="applyColorScheme('#506850', '#99C39E', '#D3F2DE')"
+                  >
+                    <div class="scheme-preview">
+                      <div class="scheme-color" style="background-color: #d3f2de"></div>
+                      <div class="scheme-color" style="background-color: #99c39e"></div>
+                      <div class="scheme-color" style="background-color: #506850"></div>
+                    </div>
+                    <div class="scheme-info">
+                      <span class="scheme-name">静谧森林</span>
+                      <span class="scheme-colors">#D3F2DE · #99C39E · #506850</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- 导航栏颜色 -->
             <div class="config-card-full">
               <div class="card-header">
@@ -1378,6 +1437,42 @@ const saveUserInfo = async () => {
 const goBack = () => {
   router.push('/profile')
 }
+
+// ========== 配色推荐功能 ==========
+
+/**
+ * 应用配色方案
+ * @param primary 主题色 (最下面的色块)
+ * @param navbar 导航栏色 (中间的色块)
+ * @param background 背景色 (最上面的色块)
+ */
+const applyColorScheme = (primary: string, navbar: string, background: string) => {
+  // 应用主题色
+  localPrimaryColor.value = primary
+  localHexColor.value = primary.replace('#', '')
+  store.updateThemeColor({
+    primary: primary,
+  })
+
+  // 应用导航栏颜色
+  localNavbarColor.value = navbar
+  localNavbarHexColor.value = navbar.replace('#', '')
+  store.updateNavbarConfig({
+    backgroundColor: navbar,
+  })
+
+  // 应用背景颜色
+  localBgColor.value = background
+  localBgHexColor.value = background.replace('#', '')
+  localBackgroundType.value = 'color'
+  store.updateThemeBackground({
+    type: 'color',
+    color: background,
+    imageUrl: '',
+  })
+
+  message.success('配色方案应用成功！')
+}
 </script>
 
 <style scoped>
@@ -2231,6 +2326,97 @@ const goBack = () => {
 
   .interests-list {
     justify-content: center;
+  }
+}
+
+/* ========== 配色推荐功能样式 ========== */
+.color-scheme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.color-scheme-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.color-scheme-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: v-bind(primaryColor);
+}
+
+.scheme-preview {
+  height: 100px;
+  display: flex;
+  overflow: hidden;
+}
+
+.scheme-color {
+  flex: 1;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.scheme-color:first-child {
+  flex: 1.2;
+}
+
+.scheme-color:hover {
+  flex: 1.5;
+}
+
+.scheme-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.scheme-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scheme-name::before {
+  content: '🎨';
+  font-size: 1.2rem;
+}
+
+.scheme-colors {
+  font-size: 0.85rem;
+  color: #888;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* 响应式优化 */
+@media (max-width: 1024px) {
+  .color-scheme-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .color-scheme-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .scheme-preview {
+    height: 100px;
   }
 }
 </style>
