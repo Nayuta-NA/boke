@@ -106,6 +106,33 @@ export const reviewAPI: ApiService<any, string> = {
   delete: (id: string) => apiClient.delete(`/api/db/reviews/${id}`),
 };
 
+// 资源 API 服务
+export const resourceAPI: ApiService<any, string> = {
+  getAll: () => apiClient.get('/api/db/resources'),
+  getById: (id: string) => apiClient.get(`/api/db/resources/${id}`),
+  create: (data: any) => apiClient.post('/api/db/resources', data),
+  update: (id: string, data: any) => apiClient.put(`/api/db/resources/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/db/resources/${id}`),
+};
+
+// 项目 API 服务
+export const projectAPI: ApiService<any, string> = {
+  getAll: () => apiClient.get('/api/db/projects'),
+  getById: (id: string) => apiClient.get(`/api/db/projects/${id}`),
+  create: (data: any) => apiClient.post('/api/db/projects', data),
+  update: (id: string, data: any) => apiClient.put(`/api/db/projects/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/db/projects/${id}`),
+};
+
+// 书籍 API 服务
+export const bookAPI: ApiService<any, string> = {
+  getAll: () => apiClient.get('/api/db/books'),
+  getById: (id: string) => apiClient.get(`/api/db/books/${id}`),
+  create: (data: any) => apiClient.post('/api/db/books', data),
+  update: (id: string, data: any) => apiClient.put(`/api/db/books/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/db/books/${id}`),
+};
+
 // 登录 API 服务
 export const authAPI = {
   login: (credentials: LoginCredentials) => apiClient.post<LoginResponse>('/api/login', credentials),

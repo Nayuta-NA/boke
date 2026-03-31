@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "title": "MDN Web Docs",
+    "description": "Web开发权威文档，包含HTML、CSS、JavaScript等技术的详细说明",
+    "icon": "fab fa-mdn",
+    "url": "https://developer.mozilla.org/zh-CN/",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Vue.js官方文档",
+    "description": "Vue 3完整指南和API参考，学习现代前端框架的最佳资源",
+    "icon": "fab fa-vuejs",
+    "url": "https://vuejs.org/",
+    "createdAt": "2024-01-02T00:00:00Z"
+  },
+  {
+    "id": 3,
+    "title": "React官方文档",
+    "description": "React库的官方学习资源，涵盖Hooks、状态管理等核心概念",
+    "icon": "fab fa-react",
+    "url": "https://reactjs.org/",
+    "createdAt": "2024-01-03T00:00:00Z"
+  },
+  {
+    "id": 4,
+    "title": "TypeScript文档",
+    "description": "TypeScript语言官方文档，学习类型安全的JavaScript开发",
+    "icon": "fas fa-code",
+    "url": "https://www.typescriptlang.org/",
+    "createdAt": "2024-01-04T00:00:00Z"
+  },
+  {
+    "id": 5,
+    "title": "Tailwind CSS",
+    "description": "实用优先的CSS框架文档，快速构建现代化用户界面",
+    "icon": "fas fa-wind",
+    "url": "https://tailwindcss.com/",
+    "createdAt": "2024-01-05T00:00:00Z"
+  },
+  {
+    "id": 6,
+    "title": "Webpack",
+    "description": "现代JavaScript应用的静态模块打包器官方文档",
+    "icon": "fas fa-cube",
+    "url": "https://webpack.js.org/",
+    "createdAt": "2024-01-06T00:00:00Z"
+  }
+]

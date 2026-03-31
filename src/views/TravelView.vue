@@ -650,21 +650,38 @@ const closePhotoModal = () => {
 
 // 选择省份（从 articles.json 筛选该省份的旅游文章）
 const selectProvince = async (province) => {
+  console.log('=== 选择省份 ===')
   console.log('点击省份:', province)
 
   // 确保已加载文章数据
   if (articlesStore.articles.length === 0) {
+    console.log('文章列表为空，开始加载...')
     await articlesStore.fetchArticles()
   }
+
+  console.log('所有文章数量:', articlesStore.articles.length)
+  console.log('所有文章数据:', articlesStore.articles)
 
   // 从 articles.json 中筛选该省份的旅游文章
   const allArticles = articlesStore.articles
 
+  // 筛选旅游分类的文章
+  const travelArticles = allArticles.filter(article => article.category === '旅游')
+  console.log('旅游类文章数量:', travelArticles.length)
+  console.log('旅游类文章省份分布:', travelArticles.map(a => ({ title: a.title, province: a.province })))
+
+  // 模糊匹配省份（支持"云南"和"云南省"两种格式）
+  const normalizedProvince = province.endsWith('省') ? province : province + '省'
+  const alternativeProvince = province.endsWith('省') ? province.slice(0, -1) : province
+  
   const filteredArticles = allArticles.filter(
-    (article) => article.category === '旅游' && article.province === province,
+    (article) => 
+      article.category === '旅游' && 
+      (article.province === province || article.province === normalizedProvince || article.province === alternativeProvince)
   )
 
   console.log(`筛选 ${province} 的文章:`, filteredArticles)
+  console.log(`筛选 ${province} 的文章数量:`, filteredArticles.length)
 
   if (filteredArticles.length === 0) {
     message.info(`暂无${province}的旅行记录`)
@@ -673,6 +690,9 @@ const selectProvince = async (province) => {
   selectedProvinceName.value = province
   selectedProvinceArticles.value = filteredArticles
   isSidebarOpen.value = true
+  
+  console.log('侧边栏文章数据:', selectedProvinceArticles.value)
+  console.log('================')
 }
 
 // 关闭侧边栏

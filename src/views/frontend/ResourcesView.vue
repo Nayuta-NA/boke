@@ -3,15 +3,24 @@
     <div class="page-header">
       <InteractiveHoverButton text="返回" class="bg-white text-gray-700 hover:bg-gray-100" @click="goBack" />
       <h1 class="page-title">学习资源</h1>
+      <div class="header-actions">
+        <a-button 
+          v-if="canCreate()" 
+          type="primary" 
+          @click="showAddModal"
+          class="create-button"
+        >
+          <template #icon><i class="fas fa-plus"></i></template>
+          新建资源
+        </a-button>
+      </div>
     </div>
 
     <div class="resources-container">
       <div class="resources-grid">
-        <a 
+        <div 
           v-for="resource in resources" 
           :key="resource.id"
-          :href="resource.url"
-          target="_blank"
           class="resource-card"
         >
           <div class="resource-icon">
@@ -21,86 +30,228 @@
             <h2 class="resource-title">{{ resource.title }}</h2>
             <p class="resource-description">{{ resource.description }}</p>
           </div>
-        </a>
+          <div class="resource-actions">
+            <a 
+              :href="resource.url"
+              target="_blank"
+              class="visit-btn"
+              title="访问资源"
+            >
+              <i class="fas fa-external-link-alt"></i>
+            </a>
+            <a-button 
+              v-if="canDelete()"
+              type="text" 
+              danger
+              size="small"
+              @click="confirmDelete(resource)"
+              class="delete-btn"
+              title="删除资源"
+            >
+              <i class="fas fa-trash"></i>
+            </a-button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 空状态 -->
+      <div v-if="!isLoading && resources.length === 0" class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>暂无资源</p>
+        <a-button v-if="canCreate()" type="primary" @click="showAddModal">添加第一个资源</a-button>
       </div>
     </div>
+
+    <!-- 新建资源弹窗 -->
+    <a-modal
+      v-model:open="isModalVisible"
+      title="新建学习资源"
+      @ok="handleAddResource"
+      :confirmLoading="isSubmitting"
+      okText="确定"
+      cancelText="取消"
+    >
+      <a-form :model="newResource" layout="vertical">
+        <a-form-item label="资源标题" required>
+          <a-input
+            v-model:value="newResource.title"
+            placeholder="请输入资源标题"
+            maxLength="100"
+          />
+        </a-form-item>
+        
+        <a-form-item label="资源描述" required>
+          <a-textarea
+            v-model:value="newResource.description"
+            placeholder="请输入资源描述"
+            :rows="3"
+            maxLength="500"
+          />
+        </a-form-item>
+        
+        <a-form-item label="资源链接" required>
+          <a-input
+            v-model:value="newResource.url"
+            placeholder="请输入资源链接 (如：https://example.com)"
+          />
+        </a-form-item>
+        
+        <a-form-item label="图标类名">
+          <a-input
+            v-model:value="newResource.icon"
+            placeholder="Font Awesome 图标类名 (如：fab fa-vuejs)"
+          />
+          <div class="form-help">
+            使用 Font Awesome 图标，例如：fab fa-vuejs, fas fa-code 等
+            <a href="https://fontawesome.com/icons" target="_blank" class="help-link">查看图标库</a>
+          </div>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import InteractiveHoverButton from '@/components/button.vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { message, Modal } from 'ant-design-vue'
+import InteractiveHoverButton from '@/components/button.vue'
+import { useFrontendStore } from '@/stores/frontend'
+import { canCreate, canDelete } from '@/lib/permissions'
 
-interface Resource {
-  id: number
+interface ResourceForm {
   title: string
   description: string
-  icon: string
   url: string
+  icon: string
 }
 
 const router = useRouter()
+const frontendStore = useFrontendStore()
+
+// 使用 store 中的资源数据
+const resources = computed(() => frontendStore.allResources)
 const isLoading = ref(true)
+const isModalVisible = ref(false)
+const isSubmitting = ref(false)
 
-const resources = ref<Resource[]>([
-  {
-    id: 1,
-    title: 'MDN Web Docs',
-    description: 'Web开发权威文档，包含HTML、CSS、JavaScript等技术的详细说明',
-    icon: 'fab fa-mdn',
-    url: 'https://developer.mozilla.org/zh-CN/'
-  },
-  {
-    id: 2,
-    title: 'Vue.js官方文档',
-    description: 'Vue 3完整指南和API参考，学习现代前端框架的最佳资源',
-    icon: 'fab fa-vuejs',
-    url: 'https://vuejs.org/'
-  },
-  {
-    id: 3,
-    title: 'React官方文档',
-    description: 'React库的官方学习资源，涵盖Hooks、状态管理等核心概念',
-    icon: 'fab fa-react',
-    url: 'https://reactjs.org/'
-  },
-  {
-    id: 4,
-    title: 'TypeScript文档',
-    description: 'TypeScript语言官方文档，学习类型安全的JavaScript开发',
-    icon: 'fas fa-code',
-    url: 'https://www.typescriptlang.org/'
-  },
-  {
-    id: 5,
-    title: 'Tailwind CSS',
-    description: '实用优先的CSS框架文档，快速构建现代化用户界面',
-    icon: 'fas fa-wind',
-    url: 'https://tailwindcss.com/'
-  },
-  {
-    id: 6,
-    title: 'Webpack',
-    description: '现代JavaScript应用的静态模块打包器官方文档',
-    icon: 'fas fa-cube',
-    url: 'https://webpack.js.org/'
-  }
-])
+// 新资源表单数据
+const newResource = ref<ResourceForm>({
+  title: '',
+  description: '',
+  url: '',
+  icon: 'fas fa-link', // 默认图标
+})
 
+// 返回上一页
 const goBack = () => {
   router.go(-1)
 }
 
-onMounted(() => {
-  // 尽快触发loaded事件，减少等待时间
-  const event = new Event('loaded')
-  window.dispatchEvent(event)
+// 显示新建资源弹窗
+const showAddModal = () => {
+  if (!canCreate()) {
+    message.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  // 重置表单
+  newResource.value = {
+    title: '',
+    description: '',
+    url: '',
+    icon: 'fas fa-link',
+  }
+  isModalVisible.value = true
+}
+
+// 处理新建资源
+const handleAddResource = async () => {
+  if (!canCreate()) {
+    message.warning('请先登录')
+    router.push('/login')
+    return
+  }
   
-  // 模拟数据加载完成
-  setTimeout(() => {
+  // 验证必填字段
+  if (!newResource.value.title.trim()) {
+    message.error('请输入资源标题')
+    return
+  }
+  
+  if (!newResource.value.description.trim()) {
+    message.error('请输入资源描述')
+    return
+  }
+  
+  if (!newResource.value.url.trim()) {
+    message.error('请输入资源链接')
+    return
+  }
+  
+  try {
+    isSubmitting.value = true
+    
+    // 验证 URL 格式
+    let url = newResource.value.url.trim()
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url
+    }
+    
+    await frontendStore.addResource({
+      title: newResource.value.title.trim(),
+      description: newResource.value.description.trim(),
+      url: url,
+      icon: newResource.value.icon.trim() || 'fas fa-link',
+    })
+    
+    message.success('资源添加成功')
+    isModalVisible.value = false
+  } catch (error: any) {
+    message.error(error.message || '添加失败，请重试')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+// 确认删除资源
+const confirmDelete = (resource: any) => {
+  if (!canDelete()) {
+    message.warning('请先登录')
+    router.push('/login')
+    return
+  }
+  
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除资源 "${resource.title}" 吗？此操作不可恢复。`,
+    okText: '确定删除',
+    cancelText: '取消',
+    okType: 'danger',
+    onOk: async () => {
+      try {
+        await frontendStore.deleteResource(resource.id)
+        message.success('删除成功')
+      } catch (error: any) {
+        message.error(error.message || '删除失败，请重试')
+      }
+    },
+  })
+}
+
+// 加载数据
+onMounted(async () => {
+  try {
+    await frontendStore.loadResources()
+  } catch (error) {
+    message.error('加载资源失败')
+  } finally {
     isLoading.value = false
-  }, 100)
+    
+    // 触发 loaded 事件
+    const event = new Event('loaded')
+    window.dispatchEvent(event)
+  }
 })
 </script>
 
@@ -122,6 +273,12 @@ onMounted(() => {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+
+.header-actions {
+  position: absolute;
+  right: 24px;
 }
 
 .page-title {
@@ -129,19 +286,6 @@ onMounted(() => {
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;
-}
-
-.back-button {
-  background: #f0f2f5;
-  border: none;
-  border-radius: 8px;
-  color: #666;
-  transition: all 0.3s;
-}
-
-.back-button:hover {
-  background: #e1e5e9;
-  color: #333;
 }
 
 .resources-container {
@@ -165,6 +309,7 @@ onMounted(() => {
   text-decoration: none;
   color: inherit;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
 }
 
 .resource-card:hover {
@@ -202,6 +347,82 @@ onMounted(() => {
   line-height: 1.6;
 }
 
+.resource-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.resource-card:hover .resource-actions {
+  opacity: 1;
+}
+
+.visit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f0f2f5;
+  color: #666;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.visit-btn:hover {
+  background: #40e0d0;
+  color: white;
+  transform: scale(1.1);
+}
+
+.delete-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  opacity: 1 !important;
+}
+
+.delete-btn:hover {
+  background: #ff4d4f;
+  color: white;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+}
+
+.empty-state i {
+  font-size: 64px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-state p {
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+.form-help {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.help-link {
+  color: #1890ff;
+  margin-left: 4px;
+}
+
 @media (max-width: 768px) {
   .resources-view {
     padding: 16px;
@@ -209,10 +430,16 @@ onMounted(() => {
   
   .page-header {
     padding: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .header-actions {
+    position: static;
+    margin-top: 12px;
   }
   
   .page-title {
-    font-size: 24px;
+    font-size: 20px;
   }
   
   .resources-grid {
@@ -230,11 +457,16 @@ onMounted(() => {
   }
   
   .resource-title {
-    font-size: 20px;
+    font-size: 18px;
   }
   
   .resource-description {
-    font-size: 15px;
+    font-size: 14px;
+  }
+  
+  .resource-actions {
+    flex-direction: row;
+    gap: 8px;
   }
 }
 </style>

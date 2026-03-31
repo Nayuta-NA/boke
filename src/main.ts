@@ -5,11 +5,18 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 // 导入 Ant Design Vue 及其样式
-import Antd from 'ant-design-vue'
+import Antd, { message } from 'ant-design-vue'
 import 'ant-design-vue/dist/reset.css'
 
 import App from './App.vue'
 import router from './router'
+
+// 配置全局 message 默认持续时间为 1 秒
+message.config({
+  duration: 1,
+  top: '8px',
+  getContainer: () => document.body
+})
 
 // 创建应用实例
 const app = createApp(App)

@@ -4,6 +4,7 @@ const Article = require('./Article');
 const Note = require('./Note');
 const Review = require('./Review');
 const Travel = require('./Travel');
+const { sequelize } = require('../config/database');
 
 // 定义关联关系
 Article.belongsTo(User, { foreignKey: 'authorId', as: 'user' });
@@ -22,4 +23,5 @@ module.exports = {
   Note,
   Review,
   Travel,
+  sequelize,
 };

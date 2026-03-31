@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "title": "JavaScript 高级程序设计",
+    "author": "Nicholas C. Zakas",
+    "cover": "https://img1.doubanio.com/view/subject/l/public/s29573135.jpg",
+    "description": "本书是 JavaScript 经典图书的新版，全面介绍了 JavaScript 的核心概念和实践技巧。",
+    "recommendation": "这是学习 JavaScript 不可或缺的参考书，涵盖了从基础语法到高级特性的全部内容，适合各个层次的开发者阅读。",
+    "tags": ["JavaScript", "编程", "前端"],
+    "rating": 5,
+    "publisher": "人民邮电出版社",
+    "publicationDate": "2019 年",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "title": "Vue.js 设计与实现",
+    "author": "霍春阳",
+    "cover": "https://img1.doubanio.com/view/subject/l/public/s30326384.jpg",
+    "description": "深入解析 Vue.js 的设计原理和实现细节，帮助读者更好地理解和使用 Vue 框架。",
+    "recommendation": "如果你想深入了解 Vue.js 的内部机制，这本书是不二之选。作者是 Vue.js 核心团队成员，对框架的设计有深刻理解。",
+    "tags": ["Vue", "框架", "源码分析"],
+    "rating": 5,
+    "publisher": "电子工业出版社",
+    "publicationDate": "2020 年",
+    "createdAt": "2024-01-02T00:00:00Z"
+  },
+  {
+    "id": 3,
+    "title": "你不知道的 JavaScript",
+    "author": "Kyle Simpson",
+    "cover": "https://img1.doubanio.com/view/subject/l/public/s26076578.jpg",
+    "description": "深入探讨 JavaScript 语言核心机制，帮助读者真正理解 JavaScript 的工作原理。",
+    "recommendation": "这本书能够帮助你建立对 JavaScript 更深入的理解，特别是作用域、闭包、this 机制等核心概念。",
+    "tags": ["JavaScript", "深入理解", "原理"],
+    "rating": 5,
+    "publisher": "机械工业出版社",
+    "publicationDate": "2018 年",
+    "createdAt": "2024-01-03T00:00:00Z"
+  },
+  {
+    "id": 4,
+    "title": "计算机组成与设计",
+    "author": "David A. Patterson",
+    "cover": "https://img1.doubanio.com/view/subject/l/public/s27185196.jpg",
+    "description": "深入讲解计算机硬件系统的设计原理和实现方法，是计算机科学领域的经典教材。",
+    "recommendation": "对于想要深入理解计算机体系结构和硬件设计的读者来说，这是一本权威且实用的参考书。内容全面且深入浅出，适合计算机专业的学生和工程师阅读。",
+    "tags": ["计算机组成", "体系结构", "硬件设计"],
+    "rating": 5,
+    "publisher": "机械工业出版社",
+    "publicationDate": "2020 年",
+    "createdAt": "2024-01-04T00:00:00Z"
+  }
+]

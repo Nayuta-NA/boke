@@ -24,6 +24,8 @@ export interface Article {
   tags?: string[];
   likeCount?: number;
   comments?: Comment[];
+  province?: string;
+  city?: string;
 }
 
 export const useArticlesStore = defineStore('articles', {

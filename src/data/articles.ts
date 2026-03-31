@@ -23,6 +23,8 @@ export interface Article {
   tags?: string[]
   likeCount?: number
   comments?: Comment[]
+  province?: string
+  city?: string
 }
 
 // 统一的文章数据

@@ -16,6 +16,9 @@ const articleRoutes = require('./routes/articles');
 const noteRoutes = require('./routes/notes');
 const reviewRoutes = require('./routes/reviews');
 const travelRoutes = require('./routes/travels');
+const resourceRoutes = require('./routes/resources');
+const projectRoutes = require('./routes/projects');
+const bookRoutes = require('./routes/books');
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -66,6 +69,9 @@ app.use('/api/db/articles', articleRoutes);
 app.use('/api/db/notes', noteRoutes);
 app.use('/api/db/reviews', reviewRoutes);
 app.use('/api/db/travels', travelRoutes);
+app.use('/api/db/resources', resourceRoutes);
+app.use('/api/db/projects', projectRoutes);
+app.use('/api/db/books', bookRoutes);
 
 // 数据文件路径
 const DATA_DIR = path.join(__dirname, 'data')
@@ -74,6 +80,7 @@ const NOTES_FILE = path.join(DATA_DIR, 'notes.json')
 const TRAVELS_FILE = path.join(DATA_DIR, 'travels.json')
 const USERS_FILE = path.join(DATA_DIR, 'users.json')
 const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json') // 添加留言数据文件路径
+const RESOURCES_FILE = path.join(DATA_DIR, 'resources.json') // 添加资源数据文件路径
 
 // 读取数据的辅助函数
 const readData = async (filePath) => {
@@ -813,5 +820,15 @@ app.listen(PORT, async () => {
   console.log(`  Upload: POST /api/upload`)
   console.log(`  Uploads served from: /uploads/*`)
 })
+
+
+
+
+
+
+
+
+
+
 
 

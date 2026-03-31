@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1,
+    "title": "数据可视化仪表盘",
+    "description": "基于 Vue 3 和 ECharts 构建的响应式数据可视化仪表盘，支持多种图表类型和数据筛选功能，适用于企业级数据展示场景。",
+    "image": "https://design.gemcoder.com/staticResource/echoAiSystemImages/935d1bafb9beae758115e88caa37125c.png",
+    "framework": "Vue 3",
+    "tags": ["Vue 3", "ECharts", "TypeScript", "Ant Design"],
+    "demo": "javascript:void(0)",
+    "github": "javascript:void(0)",
+    "createdAt": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": 2,
+    "title": "响应式电子商务网站",
+    "description": "基于 React 和 Redux 构建的全功能电子商务网站，包含商品展示、购物车、结账流程和用户中心等模块，支持响应式设计。",
+    "image": "https://design.gemcoder.com/staticResource/echoAiSystemImages/ca2fcd9bb044f7aba96ce65fcbc00059.png",
+    "framework": "React",
+    "tags": ["React", "Redux", "Tailwind CSS", "REST API"],
+    "demo": "javascript:void(0)",
+    "github": "javascript:void(0)",
+    "createdAt": "2024-01-02T00:00:00Z"
+  },
+  {
+    "id": 3,
+    "title": "PWA 天气应用",
+    "description": "基于原生 JavaScript 开发的渐进式 Web 应用，提供实时天气数据和 5 天预报，支持离线访问和添加到主屏幕。",
+    "image": "https://design.gemcoder.com/staticResource/echoAiSystemImages/420c4323ce5b988e00b5cba62f9e45bc.png",
+    "framework": "JavaScript",
+    "tags": ["JavaScript", "PWA", "IndexedDB", "Weather API"],
+    "demo": "javascript:void(0)",
+    "github": "javascript:void(0)",
+    "createdAt": "2024-01-03T00:00:00Z"
+  }
+]
