@@ -48,7 +48,7 @@
     "readTime": "1 分钟阅读",
     "province": "西藏",
     "city": "日喀则市",
-    "commentCount": 36,
+    "commentCount": 37,
     "link": "/articles/2",
     "tags": [
       "珠穆朗玛峰"
@@ -61,6 +61,13 @@
         "content": "真实记录，很有意思",
         "date": "2024-02-20 14:15",
         "likeCount": 3
+      },
+      {
+        "id": "9230a55e-5177-4c98-81ca-db08a4f46682",
+        "author": "访客",
+        "content": "哈哈哈哈哈",
+        "date": "2026-04-15T14:00:06.350Z",
+        "likeCount": 0
       }
     ]
   },
@@ -107,7 +114,7 @@
     "author": "赵小军",
     "date": "2023-07-22",
     "readTime": "15 分钟阅读",
-    "commentCount": 42,
+    "commentCount": 43,
     "link": "/articles/5",
     "tags": [
       "JavaScript",
@@ -122,6 +129,13 @@
         "content": "Promise 部分讲得很透彻",
         "date": "2024-03-01 11:20",
         "likeCount": 6
+      },
+      {
+        "id": "73930c2e-a1d6-48e1-bcac-ac3e4fb8c732",
+        "author": "访客",
+        "content": "666",
+        "date": "2026-04-15T08:15:51.857Z",
+        "likeCount": 0
       }
     ]
   },
@@ -657,7 +671,7 @@
     "readTime": "5 分钟阅读",
     "province": "云南",
     "city": "丽江市",
-    "commentCount": 23,
+    "commentCount": 24,
     "link": "/articles/28",
     "tags": [
       "丽江",
@@ -665,7 +679,15 @@
       "纳西族"
     ],
     "likeCount": 178,
-    "comments": []
+    "comments": [
+      {
+        "id": "1564ee89-d81e-4749-a543-ac6e60139b64",
+        "author": "访客",
+        "content": "666",
+        "date": "2026-04-15T13:43:51.648Z",
+        "likeCount": 0
+      }
+    ]
   },
   {
     "id": 29,

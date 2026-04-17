@@ -2,14 +2,9 @@
   <div class="books-view">
     <div class="page-header">
       <InteractiveHoverButton text="返回" class="bg-[#f0f2f5] text-[#666]" @click="goBack" />
-      <h1 class="page-title">书本推荐</h1>
-      <div class="header-actions">
-        <a-button 
-          v-if="canCreate()" 
-          type="primary" 
-          @click="showAddModal"
-          class="create-button"
-        >
+      <h1 class="page-title flex">书本推荐</h1>
+      <div class="ml-50vw">
+        <a-button v-if="canCreate()" type="primary" @click="showAddModal" class="create-button">
           <template #icon><i class="fas fa-plus"></i></template>
           新建书籍
         </a-button>
@@ -19,46 +14,44 @@
     <!-- 书籍列表容器 -->
     <div class="books-container">
       <div class="books-grid">
-        <div 
-          v-for="book in books" 
-          :key="book.id" 
-          class="book-card"
-          @click="viewBookDetail(book)"
-        >
+        <div v-for="book in books" :key="book.id" class="book-card" @click="viewBookDetail(book)">
           <div class="book-cover">
-            <img 
-              :src="getBookCover(book.cover)" 
+            <img
+              :src="getBookCover(book.cover)"
               :alt="book.title"
               @error="handleImageError"
-              style="width: 100%; height: 100%; object-fit: cover;"
+              style="width: 100%; height: 100%; object-fit: cover"
             />
           </div>
           <div class="book-content">
             <h3 class="book-title">{{ book.title }}</h3>
             <p class="book-author">{{ book.author }}</p>
-            
+
             <div class="book-tags">
-              <a-tag 
-                v-for="tag in book.tags.slice(0, 3)" 
-                :key="tag" 
+              <a-tag
+                v-for="tag in book.tags.slice(0, 3)"
+                :key="tag"
                 :color="getTagColor(tag)"
                 class="book-tag"
               >
                 {{ tag }}
               </a-tag>
             </div>
-            
-            <p class="book-description">{{ book.description?.slice(0, 100) || '暂无简介' }}{{ book.description && book.description.length > 100 ? '...' : '' }}</p>
-            
+
+            <p class="book-description">
+              {{ book.description?.slice(0, 100) || '暂无简介'
+              }}{{ book.description && book.description.length > 100 ? '...' : '' }}
+            </p>
+
             <div class="book-rating">
               <a-rate :value="book.rating" disabled />
               <span class="rating-text">{{ book.rating.toFixed(1) }}</span>
-              
-              <div class="actions" style="margin-left: auto;">
-                <a-button 
-                  v-if="canDelete()" 
-                  type="text" 
-                  danger 
+
+              <div class="actions" style="margin-left: auto">
+                <a-button
+                  v-if="canDelete()"
+                  type="text"
+                  danger
                   size="small"
                   @click.stop="confirmDelete(book)"
                 >
@@ -69,15 +62,11 @@
           </div>
         </div>
       </div>
-      
+
       <!-- 空状态提示 -->
       <div v-if="books.length === 0" class="empty-state">
         <a-empty description="暂无书籍推荐">
-          <a-button 
-            v-if="canCreate()" 
-            type="primary" 
-            @click="showAddModal"
-          >
+          <a-button v-if="canCreate()" type="primary" @click="showAddModal">
             添加第一本书籍
           </a-button>
         </a-empty>
@@ -94,41 +83,45 @@
       <div v-if="selectedBook" class="book-detail">
         <div class="detail-header">
           <div class="detail-cover">
-            <img 
-              :src="getBookCover(selectedBook.cover)" 
+            <img
+              :src="getBookCover(selectedBook.cover)"
               :alt="selectedBook.title"
               @error="handleImageError"
-              style="width: 100%; height: 100%; object-fit: cover;"
+              style="width: 100%; height: 100%; object-fit: cover"
             />
           </div>
           <div class="detail-info">
             <h2 class="detail-title">{{ selectedBook.title }}</h2>
             <p class="detail-author">作者：{{ selectedBook.author }}</p>
-            <p v-if="selectedBook.publisher" class="detail-publisher">出版社：{{ selectedBook.publisher }}</p>
-            <p v-if="selectedBook.publicationDate" class="detail-publication">出版时间：{{ selectedBook.publicationDate }}</p>
-            
+            <p v-if="selectedBook.publisher" class="detail-publisher">
+              出版社：{{ selectedBook.publisher }}
+            </p>
+            <p v-if="selectedBook.publicationDate" class="detail-publication">
+              出版时间：{{ selectedBook.publicationDate }}
+            </p>
+
             <div class="detail-tags">
-              <a-tag 
-                v-for="tag in selectedBook.tags" 
-                :key="tag" 
+              <a-tag
+                v-for="tag in selectedBook.tags"
+                :key="tag"
                 :color="getTagColor(tag)"
                 class="detail-tag"
               >
                 {{ tag }}
               </a-tag>
             </div>
-            
+
             <div class="detail-rating">
               <a-rate :value="selectedBook.rating" disabled />
               <span class="rating-text">{{ selectedBook.rating.toFixed(1) }} 分</span>
             </div>
           </div>
         </div>
-        
+
         <div class="detail-content">
           <h4>书籍简介</h4>
           <p class="detail-description">{{ selectedBook.description || '暂无简介' }}</p>
-          
+
           <h4>推荐理由</h4>
           <p class="detail-recommendation">{{ selectedBook.recommendation || '暂无推荐理由' }}</p>
         </div>
@@ -146,36 +139,21 @@
     >
       <a-form :model="newBook" layout="vertical">
         <a-form-item label="书名" required>
-          <a-input
-            v-model:value="newBook.title"
-            placeholder="请输入书名"
-            maxLength="200"
-          />
+          <a-input v-model:value="newBook.title" placeholder="请输入书名" maxLength="200" />
         </a-form-item>
-        
+
         <a-form-item label="作者" required>
-          <a-input
-            v-model:value="newBook.author"
-            placeholder="请输入作者"
-            maxLength="100"
-          />
+          <a-input v-model:value="newBook.author" placeholder="请输入作者" maxLength="100" />
         </a-form-item>
-        
+
         <a-form-item label="封面图片 URL">
-          <a-input
-            v-model:value="newBook.cover"
-            placeholder="请输入封面图片链接 (可选)"
-          />
+          <a-input v-model:value="newBook.cover" placeholder="请输入封面图片链接 (可选)" />
         </a-form-item>
-        
+
         <a-form-item label="出版社">
-          <a-input
-            v-model:value="newBook.publisher"
-            placeholder="请输入出版社"
-            maxLength="100"
-          />
+          <a-input v-model:value="newBook.publisher" placeholder="请输入出版社" maxLength="100" />
         </a-form-item>
-        
+
         <a-form-item label="出版时间">
           <a-input
             v-model:value="newBook.publicationDate"
@@ -183,7 +161,7 @@
             maxLength="50"
           />
         </a-form-item>
-        
+
         <a-form-item label="书籍简介">
           <a-textarea
             v-model:value="newBook.description"
@@ -192,7 +170,7 @@
             maxLength="1000"
           />
         </a-form-item>
-        
+
         <a-form-item label="推荐理由">
           <a-textarea
             v-model:value="newBook.recommendation"
@@ -201,7 +179,7 @@
             maxLength="1000"
           />
         </a-form-item>
-        
+
         <a-form-item label="标签">
           <a-select
             v-model:value="newBook.tags"
@@ -210,7 +188,7 @@
             :maxTagCount="5"
           />
         </a-form-item>
-        
+
         <a-form-item label="评分">
           <a-rate v-model:value="newBook.rating" :count="5" />
         </a-form-item>
@@ -356,21 +334,21 @@ const handleAddBook = async () => {
     router.push('/login')
     return
   }
-  
+
   // 验证必填字段
   if (!newBook.value.title.trim()) {
     message.error('请输入书名')
     return
   }
-  
+
   if (!newBook.value.author.trim()) {
     message.error('请输入作者')
     return
   }
-  
+
   try {
     isSubmitting.value = true
-    
+
     // 演示模式，未实际保存
     console.log('新建书籍:', newBook.value)
     books.value.push({
@@ -411,10 +389,10 @@ const handleImageError = (e: Event) => {
   if (imgElement) {
     // 根据图片尺寸设置对应的占位图
     const isLarge = imgElement.width >= 180 || imgElement.height >= 240
-    const placeholderUrl = isLarge 
+    const placeholderUrl = isLarge
       ? 'https://via.placeholder.com/180x240?text=No+Cover'
       : 'https://via.placeholder.com/150x200?text=No+Cover'
-    
+
     if (imgElement.src !== placeholderUrl) {
       imgElement.src = placeholderUrl
     }
@@ -437,7 +415,7 @@ const confirmDelete = (book: BookItem) => {
     router.push('/login')
     return
   }
-  
+
   Modal.confirm({
     title: '确认删除',
     content: `确定要删除书籍 "${book.title}" 吗？此操作不可恢复。`,
@@ -457,7 +435,6 @@ const confirmDelete = (book: BookItem) => {
     },
   })
 }
-
 </script>
 
 <style scoped>
@@ -481,6 +458,7 @@ const confirmDelete = (book: BookItem) => {
 }
 
 .page-title {
+  display: flex;
   font-size: 24px;
   font-weight: 600;
   color: #1a1a1a;

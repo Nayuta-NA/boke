@@ -269,9 +269,9 @@ const beforeImageUpload = async (file: File): Promise<boolean> => {
   try {
     // 将图片上传到后端
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('image', file)
 
-    const response = await fetch('http://localhost:3000/api/upload', {
+    const response = await fetch('http://localhost:5000/api/upload', {
       method: 'POST',
       body: formData,
     })
@@ -282,7 +282,8 @@ const beforeImageUpload = async (file: File): Promise<boolean> => {
 
     const result = await response.json()
     if (result.url) {
-      newProject.value.image = result.url
+      // 使用完整的 URL 地址
+      newProject.value.image = 'http://localhost:5000' + result.url
       message.success('图片上传成功')
     }
 

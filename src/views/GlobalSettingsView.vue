@@ -111,7 +111,63 @@
             <h2 class="section-title">颜色配置</h2>
             <p class="section-desc">自定义网站的主题色、导航栏和背景颜色</p>
           </div>
+          <div class="config-card-full">
+            <div class="card-header">
+              <h3 class="card-title">配色灵感推荐</h3>
+            </div>
+            <div class="card-body">
+              <p class="card-desc">精选实用配色方案，一键应用</p>
+              <div class="color-scheme-grid">
+                <!-- 方案 1: 简约黑色 -->
+                <div
+                  class="color-scheme-card"
+                  @click="applyColorScheme('#000000', '#FFFFFF', '#F5F5F0')"
+                >
+                  <div class="scheme-preview">
+                    <div class="scheme-color" style="background-color: #f5f5f0"></div>
+                    <div class="scheme-color" style="background-color: #ffffff"></div>
+                    <div class="scheme-color" style="background-color: #000000"></div>
+                  </div>
+                  <div class="scheme-info">
+                    <span class="scheme-name">简约黑色</span>
+                    <span class="scheme-colors">#F5F5F0 · #FFFFFF · #000000</span>
+                  </div>
+                </div>
 
+                <!-- 方案 2: 暖调活力 -->
+                <div
+                  class="color-scheme-card"
+                  @click="applyColorScheme('#B22A2A', '#F6C12C', '#F0DEBF')"
+                >
+                  <div class="scheme-preview">
+                    <div class="scheme-color" style="background-color: #f0debf"></div>
+                    <div class="scheme-color" style="background-color: #f6c12c"></div>
+                    <div class="scheme-color" style="background-color: #b22a2a"></div>
+                  </div>
+                  <div class="scheme-info">
+                    <span class="scheme-name">暖调活力</span>
+                    <span class="scheme-colors">#F0DEBF · #F6C12C · #B22A2A</span>
+                  </div>
+                </div>
+
+                <!-- 方案 3: 静谧森林 -->
+                <div
+                  class="color-scheme-card"
+                  @click="applyColorScheme('#506850', '#99C39E', '#D3F2DE')"
+                >
+                  <div class="scheme-preview">
+                    <div class="scheme-color" style="background-color: #d3f2de"></div>
+                    <div class="scheme-color" style="background-color: #99c39e"></div>
+                    <div class="scheme-color" style="background-color: #506850"></div>
+                  </div>
+                  <div class="scheme-info">
+                    <span class="scheme-name">静谧森林</span>
+                    <span class="scheme-colors">#D3F2DE · #99C39E · #506850</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="config-list-full">
             <!-- 主题颜色 -->
             <div class="config-card-full">
@@ -181,68 +237,11 @@
             </div>
 
             <!-- 配色灵感推荐 -->
-            <div class="config-card-full">
-              <div class="card-header">
-                <h3 class="card-title">配色灵感推荐</h3>
-              </div>
-              <div class="card-body">
-                <p class="card-desc">精选实用配色方案，一键应用</p>
-                <div class="color-scheme-grid">
-                  <!-- 方案 1: 简约黑色 -->
-                  <div
-                    class="color-scheme-card"
-                    @click="applyColorScheme('#000000', '#FFFFFF', '#F5F5F0')"
-                  >
-                    <div class="scheme-preview">
-                      <div class="scheme-color" style="background-color: #f5f5f0"></div>
-                      <div class="scheme-color" style="background-color: #ffffff"></div>
-                      <div class="scheme-color" style="background-color: #000000"></div>
-                    </div>
-                    <div class="scheme-info">
-                      <span class="scheme-name">简约黑色</span>
-                      <span class="scheme-colors">#F5F5F0 · #FFFFFF · #000000</span>
-                    </div>
-                  </div>
-
-                  <!-- 方案 2: 暖调活力 -->
-                  <div
-                    class="color-scheme-card"
-                    @click="applyColorScheme('#B22A2A', '#F6C12C', '#F0DEBF')"
-                  >
-                    <div class="scheme-preview">
-                      <div class="scheme-color" style="background-color: #f0debf"></div>
-                      <div class="scheme-color" style="background-color: #f6c12c"></div>
-                      <div class="scheme-color" style="background-color: #b22a2a"></div>
-                    </div>
-                    <div class="scheme-info">
-                      <span class="scheme-name">暖调活力</span>
-                      <span class="scheme-colors">#F0DEBF · #F6C12C · #B22A2A</span>
-                    </div>
-                  </div>
-
-                  <!-- 方案 3: 静谧森林 -->
-                  <div
-                    class="color-scheme-card"
-                    @click="applyColorScheme('#506850', '#99C39E', '#D3F2DE')"
-                  >
-                    <div class="scheme-preview">
-                      <div class="scheme-color" style="background-color: #d3f2de"></div>
-                      <div class="scheme-color" style="background-color: #99c39e"></div>
-                      <div class="scheme-color" style="background-color: #506850"></div>
-                    </div>
-                    <div class="scheme-info">
-                      <span class="scheme-name">静谧森林</span>
-                      <span class="scheme-colors">#D3F2DE · #99C39E · #506850</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <!-- 导航栏颜色 -->
             <div class="config-card-full">
               <div class="card-header">
-                <h3 class="card-title">导航栏颜色</h3>
+                <h3 class="card-title">导航栏与辅助颜色</h3>
                 <a-button @click="resetNavbarToDefault" class="reset-button">
                   <svg
                     class="reset-icon"
@@ -534,8 +533,8 @@
               </div>
               <div class="card-body">
                 <p class="card-desc">编辑您的个人基本信息</p>
-                <div class="form-grid">
-                  <div class="form-item">
+                <div class="form-grid form-grid-single">
+                  <div class="form-item form-item-full">
                     <label class="form-label">昵称</label>
                     <a-input
                       v-model:value="userForm.name"
@@ -544,9 +543,9 @@
                     />
                   </div>
                 </div>
-                <div class="form-grid">
-                  <div class="form-item">
-                    <label class="form-label">昵称</label>
+                <div class="form-grid form-grid-single">
+                  <div class="form-item form-item-full">
+                    <label class="form-label">简介</label>
                     <a-input
                       v-model:value="userForm.introduction"
                       placeholder="请输入您的简介"
@@ -2129,12 +2128,16 @@ const applyColorScheme = (primary: string, navbar: string, background: string) =
 
 /* ========== 个人信息配置样式 ========== */
 
-/* 表单网格布局 */
+/* 表单网格 */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   margin-top: 1rem;
+}
+
+.form-grid-single {
+  grid-template-columns: 1fr;
 }
 
 .form-item {
@@ -2144,7 +2147,7 @@ const applyColorScheme = (primary: string, navbar: string, background: string) =
 }
 
 .form-item-full {
-  margin-top: 1rem;
+  grid-column: 1 / -1;
 }
 
 .form-label {
@@ -2155,6 +2158,10 @@ const applyColorScheme = (primary: string, navbar: string, background: string) =
 
 .form-input {
   width: 100%;
+}
+
+.form-input :deep(.ant-input) {
+  width: 100% !important;
 }
 
 .form-textarea {
@@ -2196,9 +2203,9 @@ const applyColorScheme = (primary: string, navbar: string, background: string) =
 }
 
 .interest-tag:hover {
-  background: linear-gradient(135deg, #e0e0e0 0%, #d8d8d8 100%);
+  background: linear-gradient(135deg, rgba(64, 224, 208, 0.9) 0%, rgba(64, 224, 208, 0.7) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .interest-text {

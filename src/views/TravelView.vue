@@ -262,14 +262,15 @@ const customUpload = async (options) => {
   formData.append('image', options.file)
 
   try {
-    const response = await axios.post('http://localhost:3000/api/upload', formData, {
+    const response = await axios.post('http://localhost:5000/api/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
 
     if (response.data.success) {
-      newRecordForm.url = response.data.url
+      // 使用完整的 URL 地址
+      newRecordForm.url = 'http://localhost:5000' + response.data.url
       fileList.value = [
         { uid: options.file.uid, name: options.file.name, status: 'done', response: response.data },
       ]

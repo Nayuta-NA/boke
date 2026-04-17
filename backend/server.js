@@ -44,7 +44,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 限制文件大小为5MB
+    fileSize: 5 * 1024 * 1024, // 限制文件大小为 5MB
   },
   fileFilter: function (req, file, cb) {
     // 只允许图片文件
@@ -54,6 +54,21 @@ const upload = multer({
       cb(new Error('只允许上传图片文件!'))
     }
   },
+})
+
+// Multer 错误处理中间件
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    console.error('Multer 错误:', err.code, err.message)
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: '文件大小超过限制 (5MB)' })
+    }
+    return res.status(400).json({ error: err.message })
+  } else if (err) {
+    console.error('上传错误:', err.message)
+    return res.status(400).json({ error: err.message })
+  }
+  next()
 })
 
 // 中间件
@@ -126,13 +141,20 @@ const writeData = async (filePath, data) => {
 
 // 上传图片的路由
 app.post('/api/upload', upload.single('image'), async (req, res) => {
+  console.log('=== 图片上传请求 ===')
+  console.log('Request headers:', req.headers)
+  console.log('Request body:', req.body)
+  console.log('Uploaded file:', req.file)
+  
   if (!req.file) {
+    console.error('没有接收到文件')
     return res.status(400).json({ error: '没有上传文件' })
   }
 
   try {
     // 返回上传文件的路径
     const imageUrl = `/uploads/${req.file.filename}`
+    console.log('图片上传成功:', imageUrl)
     res.json({
       success: true,
       filename: req.file.filename,
@@ -820,6 +842,10 @@ app.listen(PORT, async () => {
   console.log(`  Upload: POST /api/upload`)
   console.log(`  Uploads served from: /uploads/*`)
 })
+
+
+
+
 
 
 

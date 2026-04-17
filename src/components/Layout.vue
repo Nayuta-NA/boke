@@ -11,11 +11,11 @@
           <router-link to="/articles" exact-active-class="router-link-active">文章</router-link>
           <router-link to="/travel" exact-active-class="router-link-active">旅游</router-link>
           <router-link to="/notes" exact-active-class="router-link-active">随记</router-link>
-          <router-link to="/frontend" exact-active-class="router-link-active">前端</router-link>
+          <router-link to="/frontend" exact-active-class="router-link-active">技术</router-link>
           <!-- 个人链接仅对登录用户可见 -->
-          <router-link 
-            v-if="authStore.isAuthenticated" 
-            to="/profile" 
+          <router-link
+            v-if="authStore.isAuthenticated"
+            to="/profile"
             exact-active-class="router-link-active"
           >
             个人
@@ -40,7 +40,7 @@
               </template>
             </a-dropdown>
           </div>
-          
+
           <!-- 未登录时显示登录/注册按钮 -->
           <div v-else class="auth-buttons">
             <router-link to="/login" class="auth-btn login-btn">登录</router-link>
@@ -49,7 +49,7 @@
         </div>
       </div>
     </a-layout-header>
-    
+
     <!-- 主内容区域 -->
     <slot />
   </a-layout>
@@ -77,7 +77,7 @@ watch(
   (newColor) => {
     // 不再需要设置 CSS 变量，由 App.vue 统一管理
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 // 控制导航栏显示/隐藏的状态

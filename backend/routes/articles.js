@@ -52,7 +52,14 @@ router.get('/categories', async (req, res) => {
     });
     
     if (dbCategories && dbCategories.length > 0) {
-      return res.json(dbCategories);
+      // 重新编号 ID，确保前端拿到的 ID 是连续的 1, 2, 3...
+      const categories = dbCategories.map((cat, index) => ({
+        ...cat,
+        id: index + 1, // 重新编号为连续的数字
+      }));
+      console.log('=== 后端返回的分类数据（重新编号后）===');
+      console.log(categories);
+      return res.json(categories);
     }
     
     // 如果 article_categories 表不存在或没有数据，从文章中提取
@@ -96,62 +103,6 @@ router.get('/categories', async (req, res) => {
       { id: 2, name: '前端', isDefault: true, cardType: 'card2' },
       { id: 3, name: '生活', isDefault: true, cardType: 'card2' }
     ]);
-  }
-});
-
-// 根据 ID 获取文章
-router.get('/:id', async (req, res) => {
-  try {
-    const article = await Article.findByPk(req.params.id);
-    if (!article) {
-      return res.status(404).json({ error: '文章不存在' });
-    }
-    res.json(article);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// 创建文章
-router.post('/', async (req, res) => {
-  try {
-    const userId = getUserIdFromRequest(req);
-    const articleData = {
-      ...req.body,
-      userId,
-    };
-    const article = await Article.create(articleData);
-    res.status(201).json(article);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// 更新文章
-router.put('/:id', async (req, res) => {
-  try {
-    const article = await Article.findByPk(req.params.id);
-    if (!article) {
-      return res.status(404).json({ error: '文章不存在' });
-    }
-    await article.update(req.body);
-    res.json(article);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// 删除文章
-router.delete('/:id', async (req, res) => {
-  try {
-    const article = await Article.findByPk(req.params.id);
-    if (!article) {
-      return res.status(404).json({ error: '文章不存在' });
-    }
-    await article.destroy();
-    res.json({ message: '文章已删除' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
 });
 
@@ -218,24 +169,39 @@ router.delete('/categories/:id', async (req, res) => {
     const categoryId = req.params.id;
     const userId = getUserIdFromRequest(req);
     
+    console.log('=== 删除分类开始 ===');
+    console.log('请求的 ID:', categoryId);
+    console.log('用户 ID:', userId);
+    
     // 检查分类是否存在
     const categories = await sequelize.query(`
-      SELECT * FROM article_categories WHERE id = ?
+      SELECT * FROM article_categories 
+      WHERE (userId = ? OR isDefault = true)
+      ORDER BY [order] ASC, createdAt ASC
     `, {
-      replacements: [categoryId],
+      replacements: [userId],
       type: sequelize.QueryTypes.SELECT
     });
     
-    console.log('查询到的分类:', categories);
+    console.log('数据库中查询到的所有分类:', categories);
     
-    if (!categories || categories.length === 0) {
+    // 根据排序后的位置找到对应的分类（重新编号后的 ID）
+    const targetCategory = categories[categoryId - 1];
+    
+    console.log('目标分类（重新编号后）:', targetCategory);
+    
+    if (!targetCategory) {
+      console.log('分类不存在，返回 404');
       return res.status(404).json({ error: '分类不存在' });
     }
     
-    const category = categories[0];
+    const category = targetCategory;
+    console.log('分类名称:', category.name);
+    console.log('分类数据库 ID:', category.id);
     
     // 检查是否是核心分类 (旅游或技术)
     if (category.name === '旅游' || category.name === '技术') {
+      console.log('核心分类，禁止删除');
       return res.status(403).json({ error: '系统核心分类不能删除' });
     }
     
@@ -261,13 +227,15 @@ router.delete('/categories/:id', async (req, res) => {
       });
     }
     
-    // 删除分类
+    // 删除分类（使用数据库的真实 ID）
     await sequelize.query(`
       DELETE FROM article_categories WHERE id = ? AND userId = ?
     `, {
-      replacements: [categoryId, userId],
+      replacements: [category.id, userId],
       type: sequelize.QueryTypes.DELETE
     });
+    
+    console.log('分类删除成功');
     
     res.json({ 
       message: '分类删除成功',
@@ -276,6 +244,62 @@ router.delete('/categories/:id', async (req, res) => {
   } catch (error) {
     console.error('删除分类失败:', error);
     res.status(500).json({ error: '删除分类失败' });
+  }
+});
+
+// 根据 ID 获取文章
+router.get('/:id', async (req, res) => {
+  try {
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      return res.status(404).json({ error: '文章不存在' });
+    }
+    res.json(article);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 创建文章
+router.post('/', async (req, res) => {
+  try {
+    const userId = getUserIdFromRequest(req);
+    const articleData = {
+      ...req.body,
+      userId,
+    };
+    const article = await Article.create(articleData);
+    res.status(201).json(article);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 更新文章
+router.put('/:id', async (req, res) => {
+  try {
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      return res.status(404).json({ error: '文章不存在' });
+    }
+    await article.update(req.body);
+    res.json(article);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 删除文章
+router.delete('/:id', async (req, res) => {
+  try {
+    const article = await Article.findByPk(req.params.id);
+    if (!article) {
+      return res.status(404).json({ error: '文章不存在' });
+    }
+    await article.destroy();
+    res.json({ message: '文章已删除' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
